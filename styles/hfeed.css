@@ -2,3 +2,4 @@
 body {font-family: "Hoefler Text", Georgia, serif; background-color: white; max-width: 40em;}
 .h-card, .webmention-author { font-family: "Gill Sans", Roboto,Verdana, sans-serif; }
 h1,h2,h3 { font-family: "Gill Sans", Roboto,Verdana, sans-serif; }
+.u-photo {height:2em;}

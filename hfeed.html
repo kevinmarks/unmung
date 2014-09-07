@@ -9,7 +9,12 @@
 <h1 class="p-name"><a class="u-url" href="{{feed.link}}">{{feed.title}}</a></h1>
 <h2 class="p-subtitle">{{feed.subtitle}}</h2>
 {% if feed.author_detail %}
-<p class="p-author h-card"><a href="{{feed.author_detail.href}}">{{feed.author_detail.name}}</a></p>
+<p class="p-author h-card">
+{% if feed.image %}
+<img src="{{feed.image.href}}" class="u-photo" />
+{% endif %}
+<a href="{{feed.author_detail.href}}">{{feed.author_detail.name}}</a>
+</p>
 {% endif %}
 {% for entry in entries %}
 <article class="h-entry">
