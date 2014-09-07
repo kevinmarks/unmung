@@ -20,7 +20,7 @@ class MainPage(webapp2.RequestHandler):
 class Feed(webapp2.RequestHandler):
     def get(self):
         url = self.request.get('feed')
-        values = {"url": url, "feed":"no feed found","entries":[]}
+        values = {"url": url, "feed":"no feed found","entries":[],"raw":self.request.get('raw')}
         try:
             feedblob = feedparser.parse(url)
             values["feed"] = feedblob["feed"]

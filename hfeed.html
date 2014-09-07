@@ -40,8 +40,11 @@ by <p class="p-author h-card"><a href="{{entry.author_detail.href}}">{{entry.aut
 {% endif %}
 </article>
 {% endfor %}
-{{feed}}
+{% if raw %}
+<code>{{feed}}
 <p>
 {{entries}}
+</code>
+{% endif %}
 </body>
 </html>
