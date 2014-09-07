@@ -19,32 +19,41 @@
 {% autoescape false %}
 {{entry.content[0].value}}
 {% endautoescape %}
+{% for link in entry.links %}
+{% if link.type == 'audio/mpeg' %}
+<p><audio class="u-audio" src="{{link.href}}" controls preload=none ><a href="{{link.href}}">audio</a></audio>
+{% endif %}
+{% endfor %}
 </div>
 {% else %}
 	{% if entry.summary %}
-	<div class="e-summary">
+	<div class="e-summary e-content">
 	{% autoescape false %}
 	{{entry.summary}}
 	{% endautoescape %}
+	{% for link in entry.links %}
+	{% if link.type == 'audio/mpeg' %}
+	<p><audio class="u-audio" src="{{link.href}}" controls preload=none ><a href="{{link.href}}">audio</a></audio>
+	{% endif %}
+	{% endfor %}
 	</div>
 	{% endif %}
 {% endif %}
 {% if entry.published %}
-<time class="dt-published" datetime="{{entry.published}}">Published: {{entry.published}}</time> 
+<p><time class="dt-published" datetime="{{entry.published}}">Published: {{entry.published}}</time> 
 {% endif %}
 {% if entry.updated %}
-<time class="dt-updated" datetime="{{entry.updated}}">Updated: {{entry.updated}}</time> 
+<p><time class="dt-updated" datetime="{{entry.updated}}">Updated: {{entry.updated}}</time> 
 {% endif %}
 {% if entry.author_detail %}
-by <p class="p-author h-card"><a href="{{entry.author_detail.href}}">{{entry.author_detail.name}}</a></p>
+<p>by <a class="p-author h-card" href="{{entry.author_detail.href}}">{{entry.author_detail.name}}</a>
 {% endif %}
 </article>
 {% endfor %}
-{% if raw %}
-<code>{{feed}}
+<code>{{feeds}}
+<p>{{feed}}
 <p>
 {{entries}}
 </code>
-{% endif %}
 </body>
 </html>
