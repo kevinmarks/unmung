@@ -1,0 +1,44 @@
+<html>
+<head><title>{{feed.title}}</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="styles/hfeed.css" media="all" rel="stylesheet" type="text/css" />
+<script src="static/fragmention.js"></script>
+</head>
+<body class="h-feed">
+<h1 class="p-name"><a class="u-url" href="{{feed.link}}">{{feed.title}}</a></h1>
+<h2 class="p-subtitle">{{feed.subtitle}}</h2>
+{% if feed.author_detail %}
+<p class="p-author"><a href="{{feed.author_detail.href}}">{{feed.author_detail.name}}</a></p>
+{% endif %}
+{% for entry in entries %}
+<article class="h-entry">
+<h3 class="p-name"><a class="u-url" href="{{entry.link}}">{{entry.title}}</a></h1>
+{% if entry.content %}
+<div class="e-content">
+{% autoescape false %}
+{{entry.content[0].value}}
+{% endautoescape %}
+</div>
+{% else %}
+	{% if entry.summary %}
+	<div class="e-summary">
+	{% autoescape false %}
+	{{entry.summary}}
+	{% endautoescape %}
+	</div>
+	{% endif %}
+{% endif %}
+{% if entry.published %}
+<time class="dt-published" datetime="{{entry.published}}">Published: {{entry.published}}</time>
+{% endif %}
+{% if entry.updated %}
+<time class="dt-updated" datetime="{{entry.updated}}">Updated: {{entry.updated}}</time>
+{% endif %}
+</article>
+{% endfor %}
+{{feed}}
+<p>
+{{entries}}
+</body>
+</html>

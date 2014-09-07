@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+<head><title>Atom/RSS to h-feed</title></head>
+  <body>
+    <form action="/feed" method="get">
+      <div><input name="feed" type="url"></input></div>
+      <div><input type="submit" value="Unmung feed"></div>
+    </form>
+  </body>
+</html>
+{% endautoescape %}
