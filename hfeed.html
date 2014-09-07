@@ -9,7 +9,7 @@
 <h1 class="p-name"><a class="u-url" href="{{feed.link}}">{{feed.title}}</a></h1>
 <h2 class="p-subtitle">{{feed.subtitle}}</h2>
 {% if feed.author_detail %}
-<p class="p-author"><a href="{{feed.author_detail.href}}">{{feed.author_detail.name}}</a></p>
+<p class="p-author h-card"><a href="{{feed.author_detail.href}}">{{feed.author_detail.name}}</a></p>
 {% endif %}
 {% for entry in entries %}
 <article class="h-entry">
@@ -30,10 +30,13 @@
 	{% endif %}
 {% endif %}
 {% if entry.published %}
-<time class="dt-published" datetime="{{entry.published}}">Published: {{entry.published}}</time>
+<time class="dt-published" datetime="{{entry.published}}">Published: {{entry.published}}</time> 
 {% endif %}
 {% if entry.updated %}
-<time class="dt-updated" datetime="{{entry.updated}}">Updated: {{entry.updated}}</time>
+<time class="dt-updated" datetime="{{entry.updated}}">Updated: {{entry.updated}}</time> 
+{% endif %}
+{% if entry.author_detail %}
+by <p class="p-author h-card"><a href="{{entry.author_detail.href}}">{{entry.author_detail.name}}</a></p>
 {% endif %}
 </article>
 {% endfor %}
