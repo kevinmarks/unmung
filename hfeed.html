@@ -55,10 +55,12 @@
 {% endif %}
 </article>
 {% endfor %}
+{% if raw == 'on' %}
 <code>{{feeds}}
 <p>{{feed}}
 <p>
 {{entries}}
 </code>
+{% endif %}
 </body>
 </html>
