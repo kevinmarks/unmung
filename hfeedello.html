@@ -1,0 +1,43 @@
+<html>
+<head><title>unmunged ello for {{feed.name}}</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="styles/hfeed.css" media="all" rel="stylesheet" type="text/css" />
+<script src="static/fragmention.js"></script>
+</head>
+<body class="h-feed">
+<h1 class="p-name"><a class="u-url" href="https://ello.co/{{feed.username}}">{{feed.name}}</a></h1>
+<p class="p-author h-card">
+<img src="{{feed.avatar_url}}" class="u-photo" />
+<h2 class="p-name">{{feed.name}}</h2>
+<ul>
+{% if feed.links %}
+{% for link in feed.links %}
+<li><a class="u-url" href="{{link}}">{{link}}</a>
+{% endfor %}</p>
+{% endif %}
+{% for entry in feed.posts %}
+<article class="h-entry">
+{% for bodypart in entry.body %}
+{% if bodypart.kind=="text" %}
+<div class="e-content">
+{% autoescape false %}
+{{bodypart.data}}
+{% endautoescape %}
+</div>
+{% endif %}
+{% endfor %}
+{% if entry.created_at %}
+<p><time class="dt-published" datetime="{{entry.created_at}}">Created: {{entry.created_at}}</time> 
+{% endif %}
+</article>
+{% endfor %}
+{% if raw == 'on' %}
+<code>{{feeds}}
+<p>{{feed}}
+<p>
+{{entries}}
+</code>
+{% endif %}
+</body>
+</html>
