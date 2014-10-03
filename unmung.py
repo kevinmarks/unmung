@@ -40,7 +40,7 @@ class Ello(webapp2.RequestHandler):
         #self.response.write(result.content)
         if result.status_code == 200:
             values["feed"] = json.loads(result.content)
-            values["feeds"] = result.content
+            values["feeds"] = json.dumps(values["feed"],sort_keys=True,indent=2)
             values["feed"]["links"] = values["feed"].get("links","").split()
             template = JINJA_ENVIRONMENT.get_template('hfeedello.html')
             self.response.write(template.render(values))

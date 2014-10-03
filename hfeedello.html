@@ -26,11 +26,17 @@
 {% endautoescape %}
 </div>
 {% endif %}
+{% if bodypart.kind=="image" %}
+<div class="e-content">
+<img class="u-photo" width=100% src="{{bodypart.data.url}}" alt="{{bodypart.data.alt}}" />
+</div>
+{% endif %}
 {% endfor %}
 {% if entry.created_at %}
 <p><time class="dt-published" datetime="{{entry.created_at}}">Created: {{entry.created_at}}</time> 
 {% endif %}
 </article>
+<hr>
 {% endfor %}
 {% if raw == 'on' %}
 <code>{{feeds}}
