@@ -19,34 +19,43 @@
 {% for entry in entries %}
 <article class="h-entry">
 <h3 class="p-name"><a class="u-url" href="{{entry.link}}">{% autoescape false %}{{entry.title}}{% endautoescape %}</a></h3>
-{% if entry.content %}
 <div class="e-content">
-{% autoescape false %}
-{{entry.content[0].value}}
-{% endautoescape %}
-{% for link in entry.links %}
-{% if link.type == 'audio/mpeg' %}
-<p><audio class="u-audio" src="{{link.href}}" controls preload=none ><a href="{{link.href}}">audio</a></audio>
-{% endif %}
-{% if link.type == 'video/x-m4v' or link.type == 'video/x-mp4' or link.type == 'video/mp4' %}
-<p><video class="u-video" src="{{link.href}}" controls preload=none ><a href="{{link.href}}">video</a></video>
-{% endif %}
-{% endfor %}
-</div>
-{% else %}
-	{% if entry.summary %}
-	<div class="e-summary e-content">
+{% if entry.summary and entry.content %}
+	<span class="e-summary">
 	{% autoescape false %}
 	{{entry.summary}}
 	{% endautoescape %}
-	{% for link in entry.links %}
-	{% if link.type == 'audio/mpeg' %}
-	<p><audio class="u-audio" src="{{link.href}}" controls preload=none ><a href="{{link.href}}">audio</a></audio>
+	{% if entry.content[0].value.startswith(entry.summary) %}
+		{% autoescape false %}
+		{{entry.content[0].value.split(entry.summary)[1] }}
+		{% endautoescape %}
+	{% else %}
+		{% autoescape false %}
+		{{entry.content[0].value}}
+		{% endautoescape %}
 	{% endif %}
-	{% endfor %}
-	</div>
-	{% endif %}
+{% elif entry.content %}
+	{% autoescape false %}
+	{{entry.content[0].value}}
+	{% endautoescape %}
+{% elif entry.summary %}
+	<span class="e-summary">
+	{% autoescape false %}
+	{{entry.summary}}
+	{% endautoescape %}
+	</span>
 {% endif %}
+
+
+{% for link in entry.links %}
+	{% if link.type == 'audio/mpeg' %}
+		<p><audio class="u-audio" src="{{link.href}}" controls preload=none ><a href="{{link.href}}">audio</a></audio>
+	{% endif %}
+	{% if link.type == 'video/x-m4v' or link.type == 'video/x-mp4' or link.type == 'video/mp4' %}
+		<p><video class="u-video" src="{{link.href}}" controls preload=none ><a href="{{link.href}}">video</a></video>
+	{% endif %}
+{% endfor %}
+</div>
 {% if entry.published %}
 <p><time class="dt-published" datetime="{{entry.published}}">Published: {{entry.published}}</time> 
 {% endif %}
@@ -57,6 +66,7 @@
 <p>by <a class="p-author h-card" href="{{entry.author_detail.href}}">{{entry.author_detail.name}}</a>
 {% endif %}
 </article>
+<hr>
 {% endfor %}
 {% if raw == 'on' %}
 <code>{{feeds}}
