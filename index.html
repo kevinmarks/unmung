@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 {% autoescape true %}
 <html>
-<head><title>Atom/RSS to h-feed</title></head>
+<head><title>Atom/RSS to h-feed</title>
+<meta charset="utf-8">
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
   <body>
     <form action="/feed" method="get">
       <div><input name="feed" type="url"></input></div>

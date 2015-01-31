@@ -1,6 +1,7 @@
 import os
 import urllib2
 import feedparser
+import datetime
 
 import jinja2
 import webapp2
@@ -26,6 +27,11 @@ class Feed(webapp2.RequestHandler):
         feedblob = feedparser.parse(url)
         values["feed"] = feedblob["feed"]
         values["entries"] = feedblob["entries"]
+        for entry in values["entries"]:
+            if "published" in entry:
+                entry["iso_published"] =  datetime.datetime(*entry["published_parsed"][:6]).isoformat()
+            if "updated" in entry:
+                entry["iso_updated"] = datetime.datetime(*entry["updated_parsed"][:6]).isoformat()
         if len(values["entries"]) ==0:
             values["entries"]=["no entries"]
         template = JINJA_ENVIRONMENT.get_template('hfeed.html')
