@@ -46,8 +46,6 @@
 	</span>
 {% endif %}
 
-<div class="preview"><details><summary>Full post</summary>
-<iframe src="{{entry.link}}" width=100%></iframe></div>
 {% for link in entry.links %}
 	{% if link.type == 'audio/mpeg' or link.type == 'audio/mp3' %}
 		<p><audio class="u-audio" src="{{link.href}}" controls preload=none ><a href="{{link.href}}">audio</a></audio>
