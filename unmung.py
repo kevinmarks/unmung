@@ -1,7 +1,10 @@
 import os
 import urllib2
+import urllib
 import feedparser
 import datetime
+import mf2py
+
 
 import jinja2
 import webapp2
@@ -16,7 +19,12 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     
 class MainPage(webapp2.RequestHandler):
     def get(self):
-        values ={};
+        html = self.request.get('html')
+        pretty = self.request.get('pretty','on') == 'on'
+        values ={"rawhtml": html, "mfjson":""}
+        if html:
+            mf2json = mf2py.Parser(doc=html).to_json(pretty)
+            values["mfjson"] = mf2json
         template = JINJA_ENVIRONMENT.get_template('index.html')
         self.response.write(template.render(values))
         
@@ -36,6 +44,18 @@ class Feed(webapp2.RequestHandler):
             values["entries"]=["no entries"]
         template = JINJA_ENVIRONMENT.get_template('hfeed.html')
         self.response.write(template.render(values))
+
+class Microformats(webapp2.RequestHandler):
+    def get(self):
+        url = self.request.get('url')
+        html = self.request.get('html')
+        prettyText = self.request.get('pretty','')
+        pretty = prettyText == 'on'
+        if html:
+            self.redirect("/?"+urllib.urlencode({'html':html,'pretty':prettyText}))
+        mf2json = mf2py.Parser(url=url).to_json(pretty)
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.write(mf2json)
 
 
 class Ello(webapp2.RequestHandler):
@@ -57,5 +77,7 @@ class Ello(webapp2.RequestHandler):
 application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/feed',Feed),
-    ('/ello',Ello)
+    ('/ello',Ello),
+    ('/mf2',Microformats)
+
 ], debug=True)
