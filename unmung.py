@@ -5,6 +5,7 @@ import feedparser
 import datetime
 import html5lib
 import mf2py
+import cassis
 
 
 
@@ -12,6 +13,7 @@ import jinja2
 import webapp2
 import json
 from google.appengine.api import urlfetch
+
 
 
 JINJA_ENVIRONMENT = jinja2.Environment(
@@ -23,10 +25,19 @@ class MainPage(webapp2.RequestHandler):
     def get(self):
         html = self.request.get('html')
         pretty = self.request.get('pretty','on') == 'on'
-        values ={"rawhtml": html, "mfjson":""}
+        rawtext = self.request.get('rawtext')
+        embed = self.request.get('embed','')
+        maxUrlLength = self.request.get('maxurllength','0')
+        if maxUrlLength=='':
+            maxUrlLength= '0'
+        embedit = embed == 'on'
+        values ={"rawhtml": html, "mfjson":"","rawtext":rawtext,"linkedhtml":""}
         if html:
             mf2json = mf2py.Parser(doc=html).to_json(pretty)
             values["mfjson"] = mf2json
+        if rawtext:
+            linkedhtml = cassis.auto_link(rawtext,do_embed=embedit,maxUrlLength=int(maxUrlLength))
+            values["linkedhtml"] = linkedhtml
         template = JINJA_ENVIRONMENT.get_template('index.html')
         self.response.write(template.render(values))
         
@@ -59,6 +70,16 @@ class Microformats(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'application/json'
         self.response.write(mf2json)
 
+class Autolink(webapp2.RequestHandler):
+    def get(self):
+        rawtext = self.request.get('rawtext').encode('utf-8')
+        embed = self.request.get('embed','on')
+        maxUrlLength = self.request.get('maxurllength','0')
+        if maxUrlLength=='':
+            maxUrlLength= '0'
+        embedit = embed == 'on'
+        self.redirect("/?"+urllib.urlencode({'rawtext':rawtext,'embed':embed,'maxurllength':maxUrlLength}))
+
 
 class Ello(webapp2.RequestHandler):
     def get(self):
@@ -80,6 +101,7 @@ application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/feed',Feed),
     ('/ello',Ello),
-    ('/mf2',Microformats)
+    ('/mf2',Microformats),
+    ('/autolink',Autolink)
 
 ], debug=True)

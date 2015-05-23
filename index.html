@@ -4,22 +4,32 @@
 <head><title>Atom/RSS to h-feed</title>
 <meta charset="utf-8">
 <meta name="mobile-web-app-capable" content="yes" />
+<link href="styles/hfeed.css" media="all" rel="stylesheet" type="text/css" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
   <body>
-  <h1>A tool to turn feeds into h-feeds</h1>
+  <h2>A tool to turn feeds into h-feeds</h2>
     <form action="/feed" method="get">
       <div><input name="feed" type="url"></input></div>
       <div><input type="submit" value="Unmung feed"></div>
       <div><input name="raw" type="checkbox" label="show raw"><label>show raw</label></div>      
     </form>
-  <h1>A tool to turn any webpage into mf2 json</h1>
+  <h2>A tool to turn any webpage into mf2 json</h2>
     <form action="/mf2" method="get">
       <div>url:<input name="url" type="url"></input></div>
       <div><textarea name="html" rows="6" cols="80" >{{ rawhtml }}</textarea></div>
       <div><input type="submit" value="parse for microformats"></div>
       <div><input name="pretty" type="checkbox" label="pretty print" checked="on"><label>pretty print</label></div> 
       <div><pre><code>{{mfjson}}</code></pre></div>     
+    </form>
+  <h2>A tool to autolink and embed urls into html</h2>
+    <form action="/autolink" method="get">
+      <div><textarea name="rawtext" rows="6" cols="80" >{{ rawtext }}</textarea></div>
+      <div><input type="submit" value="autolink"></div>
+      <div><input name="embed" type="checkbox" label="pretty print" checked="on"><label>embed images etc</label></div> 
+      <div><input name="maxurllength" type="number" label="max url length" ></div> 
+      {% autoescape false %}<div>{{ linkedhtml }}</div> {% endautoescape %}    
+      <div><textarea name="linkedhtml" rows="6" cols="80" >{{ linkedhtml }}</textarea></div>
     </form>
   </body>
 </html>
