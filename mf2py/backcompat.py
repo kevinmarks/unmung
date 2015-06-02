@@ -11,9 +11,10 @@ CLASSIC_ROOT_MAP = {
     'hentry': 'h-entry',
     'hrecipe': 'h-recipe',
     'hresume': 'h-resume',
-    'hevent': 'h-event',
+    'vevent': 'h-event',
     'hreview': 'h-review',
-    'hproduct': 'h-product'
+    'hproduct': 'h-product',
+    'hreview-aggregate': 'h-review-aggregate'
 }
 
 CLASSIC_PROPERTY_MAP = {
@@ -95,14 +96,13 @@ CLASSIC_PROPERTY_MAP = {
             'affiliation': ['p-affiliation', 'h-card'],
         },
     },
-    'hevent': {
+    'vevent': {
         'classes': {
             'dtstart': ['dt-start'],
             'dtend': ['dt-end'],
             'duration': ['dt-duration'],
             'description': ['p-description'],
             'summary': ['p-summary'],
-            'description': ['p-description'],
             'url': ['u-url'],
             'category': ['p-category'],
             'location': ['h-card'],
@@ -137,6 +137,25 @@ CLASSIC_PROPERTY_MAP = {
             'url': ['u-url'],
             'review': ['p-review', 'h-review', 'e-description'],
             'price': ['p-price'],
+        },
+    },
+    'hreview-aggregate': {
+        'classes': {
+            'summary': ['p-name'],
+            # doesn't work properly, see spec
+            'fn': ['p-item', 'h-item', 'p-name'],
+            # of the item being reviewed (p-item h-item u-photo)
+            'photo': ['u-photo'],
+            # of the item being reviewed (p-item h-item u-url)
+            'url': ['u-url'],
+            'reviewer': ['p-reviewer', 'p-author', 'h-card'],
+            'dtreviewed': ['dt-reviewed'],
+            'rating': ['p-rating'],
+            'best': ['p-best'],
+            'worst': ['p-worst'],
+            'description': ['p-description'],
+            'count': ['p-count'],
+            'votes': ['p-votes']
         },
     }
 }
