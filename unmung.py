@@ -66,9 +66,10 @@ class Microformats(webapp2.RequestHandler):
         pretty = prettyText == 'on'
         if html:
             self.redirect("/?"+urllib.urlencode({'html':html,'pretty':prettyText}))
-        mf2json = mf2py.Parser(url=url).to_json(pretty)
-        self.response.headers['Content-Type'] = 'application/json'
-        self.response.write(mf2json)
+        elif url:
+            mf2json = mf2py.Parser(doc=urllib2.urlopen(url)).to_json(pretty)
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.write(mf2json)
 
 class Autolink(webapp2.RequestHandler):
     def get(self):
