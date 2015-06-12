@@ -1,0 +1,18 @@
+<html>
+<head><title>{{" ".join(item.properties.name)}}</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="styles/hfeed.css" media="all" rel="stylesheet" type="text/css" />
+<script src="static/fragmention.js"></script>
+</head>
+<body>
+<div class="{{item.type[0]}} indiecard">
+<h1 >{% if item.properties.photo %}
+<a class="figure" href="{{url}}"><img src="{{item.properties.photo[0]}}" class="u-photo" /></a>
+{% endif %}
+<a class="u-url p-name"" href="{{url}}">{{" ".join(item.properties.name)}}</a></h1>
+<h2 class="p-summary">{{" ".join(item.properties.summary)}}</h2>
+</div>
+<details><summary>raw</summary><code>{{item}}</code></details>
+</body>
+</html>

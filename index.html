@@ -6,6 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <link href="styles/hfeed.css" media="all" rel="stylesheet" type="text/css" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="static/fragmention.js"></script>
 </head>
   <body>
   <h2>A tool to turn feeds into h-feeds</h2>
@@ -30,6 +31,11 @@
       <div><input name="maxurllength" type="number" label="max url length" ></div> 
       {% autoescape false %}<div>{{ linkedhtml }}</div> {% endautoescape %}    
       <div><textarea name="linkedhtml" rows="6" cols="80" >{{ linkedhtml }}</textarea></div>
+    </form>
+  <h2>A tool to show indiecards</h2>
+    <form action="/indiecard" method="get">
+      <div><input name="url" type="url"></input></div>
+      <div><input type="submit" value="show indiecard"></div>
     </form>
   </body>
 </html>

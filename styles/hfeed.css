@@ -10,3 +10,7 @@ blockquote.auto-mention cite {font-style:normal; font-weight:bold;}
 blockquote.auto-mention p {margin:0;}
 blockquote.auto-mention a {text-decoration:none; color:black;}
 
+.u-photo {maxwidth:100%;}
+.indiecard {border: 1px solid lightgray; border-radius: 4px; max-width: 25em; padding: .9em; }
+.indiecard.figure {float:left; width 50%;}
+

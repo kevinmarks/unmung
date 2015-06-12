@@ -58,6 +58,18 @@ class Feed(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('hfeed.html')
         self.response.write(template.render(values))
 
+class IndieCard(webapp2.RequestHandler):
+    def get(self):
+        url = self.request.get('url')
+        values={"url":url}
+        mf2 = mf2py.Parser(doc=urllib2.urlopen(url), url=url).to_dict()
+        for item in mf2["items"]:
+            if not item["type"][0].startswith('h-x-'):
+                values["item"]= item
+                break
+        template = JINJA_ENVIRONMENT.get_template('indiecard.html')
+        self.response.write(template.render(values))
+
 class Microformats(webapp2.RequestHandler):
     def get(self):
         url = self.request.get('url')
@@ -67,7 +79,7 @@ class Microformats(webapp2.RequestHandler):
         if html:
             self.redirect("/?"+urllib.urlencode({'html':html,'pretty':prettyText}))
         elif url:
-            mf2json = mf2py.Parser(doc=urllib2.urlopen(url)).to_json(pretty)
+            mf2json = mf2py.Parser(doc=urllib2.urlopen(url), url=url).to_json(pretty)
             self.response.headers['Content-Type'] = 'application/json'
             self.response.write(mf2json)
 
@@ -101,6 +113,7 @@ class Ello(webapp2.RequestHandler):
 application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/feed',Feed),
+    ('/indiecard',IndieCard),
     ('/ello',Ello),
     ('/mf2',Microformats),
     ('/autolink',Autolink)
