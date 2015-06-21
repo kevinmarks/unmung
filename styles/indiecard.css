@@ -1,0 +1,116 @@
+
+* { font-family: 'Gill Sans','Roboto', sans-serif; line-height:1.2; vertical-align:middle; }
+
+body { background:#222;  }
+
+
+main {
+  display:block;
+  position:relative;
+  width:30rem;
+  margin:3vh auto;
+  padding:1.5rem 0 0;
+  background:#d5d5d5;
+  outline
+  border-radius:.25rem;
+  overflow:hidden;
+}
+header {
+  position:absolute;
+  z-index:0;
+  top:0; left:0; right:0;
+  height:10rem;
+  transition:transform .5s, opacity .3s;
+  background:url(/static/landscape.jpg)  center center;
+  background-size:cover;
+}
+
+input, .indiecard {
+  position:relative;
+  z-index:2;
+}
+input {
+  display:block;
+  width:26rem;
+  margin:4.5rem 1rem 2rem;
+  border:0;
+  font-size:1.2rem;
+  padding:.75rem 1rem;
+  border-radius:3px;
+  box-shadow:0 1px 2px #aaa;
+  transition:.5s, margin-bottom .15s;
+}
+
+input:focus {
+  margin:0 1rem 1rem;
+  outline:0;
+}
+
+input:focus + header {
+  transform:translate3d(0,-10rem,0);
+  opacity:0;
+}
+
+.indiecard {
+  padding:1.5rem;
+  box-shadow:0 1px 2px #aaa;
+  background:white;
+  margin:0 1rem 1rem;
+  border-radius:3px;
+  user-select:none;
+  animation:fly-in-from-left .5s 1s ease both;
+  transform-origin:top left;
+}
+.indiecard:nth-child(even){
+  animation-name:fly-in-from-right;
+  animation-delay:1.1s;
+ transform-origin:top right;
+}
+
+@keyframes fly-in-from-left {
+  from {
+    transform:translateY(15rem) rotate(15deg);
+    opacity:0;
+  }
+}
+
+@keyframes fly-in-from-right {
+  from {
+    transform:translateY(15rem) rotate(-15deg);
+    opacity:0;
+  }
+}
+
+.indiecard:after {
+  position:absolute;
+  font-size:.9rem;
+  top:1.5rem;
+  right:1rem;
+  content:"i";
+  border:thin solid gray;
+  color:gray;
+  width:1rem;
+  line-height:1rem;
+  text-align:center;
+  border-radius:50%;
+  pointer-events:none;
+}
+a { text-decoration:none;
+}
+h1 {
+  font-size:2rem;
+  font-weight:400;
+}
+  strong {
+    font-weight:300;
+    color:#539D00;
+  }
+
+h2 {
+  font-size:1rem;
+  line-height:1.5;
+  color:black;
+  font-weight:400;
+}
+
+.hidden {display:none;}

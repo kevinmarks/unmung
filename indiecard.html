@@ -3,15 +3,26 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="styles/hfeed.css" media="all" rel="stylesheet" type="text/css" />
+<link href="styles/indiecard.css" media="all" rel="stylesheet" type="text/css" />
 <script src="static/fragmention.js"></script>
 </head>
 <body>
+<main>
+    <form action="/indiecard" method="get">
+      <input name="url" type="url" placeholder="get card for url" />
+      <input type="submit" value="show indiecard" class="hidden"/>
+    </form>
+<header></header>
 <div class="{{item.type[0]}} indiecard">
 <h1 >{% if item.properties.photo %}
 <a class="figure" href="{{url}}"><img src="{{item.properties.photo[0]}}" class="u-photo" /></a>
 {% endif %}
 <a class="u-url p-name"" href="{{url}}">{{" ".join(item.properties.name)}}</a></h1>
+{% if item.properties.summary %}
 <h2 class="p-summary">{{" ".join(item.properties.summary)}}</h2>
+{% elif item.properties.note %}
+<h2 class="p-note">{{item.properties.note[0].value}}</h2>
+{% endif %}
 </div>
 <details><summary>raw</summary><code>{{item}}</code></details>
 </body>
