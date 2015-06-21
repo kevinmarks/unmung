@@ -62,6 +62,8 @@ class IndieCard(webapp2.RequestHandler):
     def get(self):
         url = self.request.get('url')
         values={"url":url}
+        if "://" not in url:
+            url = "http://"+url
         mf2 = mf2py.Parser(doc=urllib2.urlopen(url), url=url).to_dict()
         for item in mf2["items"]:
             if not item["type"][0].startswith('h-x-'):
