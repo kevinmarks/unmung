@@ -21,7 +21,13 @@
 {% if item.properties.summary %}
 <h2 class="p-summary">{{" ".join(item.properties.summary)}}</h2>
 {% elif item.properties.note %}
-<h2 class="p-note">{{item.properties.note[0].value}}</h2>
+{% if item.properties.note[0].html %}
+{% autoescape false %}
+<h2 class="p-note">{{item.properties.note[0].html}}</h2>
+{% endautoescape %}
+{% else %}
+<h2 class="p-note">{{" ".join(item.properties.note)}}</h2>
+{% endif %}
 {% endif %}
 </div>
 <details><summary>raw</summary><code>{{item}}</code></details>
