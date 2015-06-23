@@ -23,7 +23,7 @@
 {% elif item.properties.note %}
 {% if item.properties.note[0].html %}
 {% autoescape false %}
-<h2 class="p-note">{{item.properties.note[0].html}}</h2>
+<h2 class="e-note">{{item.properties.note[0].html}}</h2>
 {% endautoescape %}
 {% else %}
 <h2 class="p-note">{{" ".join(item.properties.note)}}</h2>
