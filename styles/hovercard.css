@@ -1,7 +1,7 @@
 body {margin:0; font-family: "Gill Sans", Roboto,Verdana, sans-serif; overflow:hidden;}
-.indiecard {display:flex; flex-direction: column; margin:0; width:90%; height:90%; padding: 4%; position:fixed; overflow:hidden;}
-h1 {display:flex; flex-direction: row; font-size:20vh; align-items:center;}
-h2 {display:flex; flex-direction: row; font-weight: 300;}.
+.indiecard {display:flex; flex-direction: column; margin:0; width:100%; height:100%; padding: 0; position:fixed; overflow:hidden;}
+h1 {display:flex; flex-direction: row; font-size:20vh; align-items:center; margin:0;flex-shrink:1;}
+h2 {display:flex; flex-direction: row; font-weight: 300; margin:0;flex-grow:2;}
 text {font-size:20vh;}
 a { text-decoration:none;}
 .figure {flex-grow:1; max-width:20%;}
