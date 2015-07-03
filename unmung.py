@@ -72,6 +72,28 @@ class IndieCard(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('indiecard.html')
         self.response.write(template.render(values))
 
+class HoverCard(webapp2.RequestHandler):
+    #like indiecard but to be iframed
+    def get(self):
+        url = self.request.get('url')
+        values={"url":url}
+        if "://" not in url:
+            url = "http://"+url
+        mf2 = mf2py.Parser(doc=urllib2.urlopen(url), url=url).to_dict()
+        for item in mf2["items"]:
+            if item["type"][0].startswith('h-card'):
+                values["item"]= item
+                break
+        if "item" not in values:
+            for item in mf2["items"]:
+                if "author" in item["properties"] and item["properties"]["author"][0]["type"][0].startswith('h-card'):
+                    values["item"]= item["properties"]["author"][0]
+                    break
+        if "item" not in values:
+            values["item"] = {"properties":{"url":[url],"name":[url]},"type":["h-card"]}
+        template = JINJA_ENVIRONMENT.get_template('hovercard.html')
+        self.response.write(template.render(values))
+
 class Microformats(webapp2.RequestHandler):
     def get(self):
         url = self.request.get('url')
@@ -116,6 +138,7 @@ application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/feed',Feed),
     ('/indiecard',IndieCard),
+    ('/hovercard',HoverCard),
     ('/ello',Ello),
     ('/mf2',Microformats),
     ('/autolink',Autolink)

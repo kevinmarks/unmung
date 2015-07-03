@@ -1,0 +1,28 @@
+<html>
+<head><title>{{" ".join(item.properties.name)}}</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="styles/hovercard.css" media="all" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div class="{{item.type[0]}} indiecard">
+<h1 >{% if item.properties.photo %}
+<a class="figure" href="{{url}}"><img src="{{item.properties.photo[0]}}" class="u-photo" /></a>
+{% endif %}
+<a class="u-url p-name" href="{{url}}">
+<svg width="100%" height="100%"><text x="0%"  y="80%" font-size="30vh"  textLength="100%" lengthAdjust="spacingAndGlyphs">{{" ".join(item.properties.name)}}</text></svg>
+</a></h1>
+{% if item.properties.summary %}
+<h2 class="p-summary">{{" ".join(item.properties.summary)}}</h2>
+{% elif item.properties.note %}
+{% if item.properties.note[0].html %}
+{% autoescape false %}
+<h2 class="e-note">{{item.properties.note[0].html}}</h2>
+{% endautoescape %}
+{% else %}
+<h2 class="p-note">{{" ".join(item.properties.note)}}</h2>
+{% endif %}
+{% endif %}
+</div>
+</body>
+</html>

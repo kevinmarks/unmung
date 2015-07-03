@@ -1,0 +1,9 @@
+body {margin:0; font-family: "Gill Sans", Roboto,Verdana, sans-serif; overflow:hidden;}
+.indiecard {display:flex; flex-direction: column; margin:0; width:90%; height:90%; padding: 4%; position:fixed; overflow:hidden;}
+h1 {display:flex; flex-direction: row; font-size:20vh; align-items:center;}
+h2 {display:flex; flex-direction: row; font-weight: 300;}.
+text {font-size:20vh;}
+a { text-decoration:none;}
+.figure {flex-grow:1; max-width:20%;}
+.u-photo {width:100%; object-fit: contain;}
+.p-name {  flex-grow:4; }
