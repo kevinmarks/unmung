@@ -13,13 +13,20 @@ import jinja2
 import webapp2
 import json
 from google.appengine.api import urlfetch
-
+from google.appengine.api import memcache
 
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
+    
+def mf2parseWithCaching(url):
+    mf2 = memcache.get(url,namespace='mf2')
+    if mf2 is None:
+        mf2 = mf2py.Parser(doc=urllib2.urlopen(url), url=url).to_dict()
+        memcache.set(url,mf2,time=3600,namespace='mf2')
+    return mf2
     
 class MainPage(webapp2.RequestHandler):
     def get(self):
@@ -64,7 +71,7 @@ class IndieCard(webapp2.RequestHandler):
         values={"url":url}
         if "://" not in url:
             url = "http://"+url
-        mf2 = mf2py.Parser(doc=urllib2.urlopen(url), url=url).to_dict()
+        mf2 = mf2parseWithCaching(url)
         for item in mf2["items"]:
             if not item["type"][0].startswith('h-x-'):
                 values["item"]= item
@@ -79,7 +86,7 @@ class HoverCard(webapp2.RequestHandler):
         values={"url":url}
         if "://" not in url:
             url = "http://"+url
-        mf2 = mf2py.Parser(doc=urllib2.urlopen(url), url=url).to_dict()
+        mf2 = mf2parseWithCaching(url)
         for item in mf2["items"]:
             if item["type"][0].startswith('h-card'):
                 values["item"]= item
