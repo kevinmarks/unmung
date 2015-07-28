@@ -47,7 +47,7 @@
 {% endif %}
 
 {% for link in entry.links %}
-	{% if link.type == 'audio/mpeg' or link.type == 'audio/mp3' %}
+	{% if link.type == 'audio/mpeg' or link.type == 'audio/mp3' or link.href.endswith(".mp3") %}
 		<p><audio class="u-audio" src="{{link.href}}" controls preload=none ><a href="{{link.href}}">audio</a></audio>
 	{% endif %}
 	{% if link.type == 'video/x-m4v' or link.type == 'video/x-mp4' or link.type == 'video/mp4' %}
