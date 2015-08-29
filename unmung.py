@@ -12,9 +12,13 @@ import cassis
 import jinja2
 import webapp2
 import json
+import openanything
 from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 
+import logging
+
+useragent = 'IndieWebCards/0.5 like Mozilla'
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
@@ -22,10 +26,25 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True)
     
 def mf2parseWithCaching(url):
-    mf2 = memcache.get(url,namespace='mf2')
+    etag = memcache.get(url,namespace='ETag')
+    lastmod = memcache.get(url,namespace='Last-Modified')
+    reuse = memcache.get(url,namespace='reuse')
+    mf2 = None
+    logging.info("mf2parseWithCaching: url '%s' etag '%s' lastmod '%s'" % (url, etag, lastmod))
+    params = openanything.fetch(url, etag, lastmod, useragent)
+    #logging.info("mf2parseWithCaching: openanything params '%s' " % (params))
+    if params.get('status') == 304 or params.get('data') == '' or reuse :
+        logging.info("mf2parseWithCaching: - using cached '%s'"  % (reuse))
+        mf2 = memcache.get(url,namespace='mf2')
     if mf2 is None:
-        mf2 = mf2py.Parser(doc=urllib2.urlopen(url), url=url).to_dict()
-        memcache.set(url,mf2,time=3600,namespace='mf2')
+        mf2 = mf2py.Parser(params['data'], url=url).to_dict()
+        memcache.set(url,mf2,namespace='mf2')
+        etag = params.get('etag')
+        memcache.set(url,etag,namespace='ETag')
+        lastmod = params.get('lastmodified')
+        memcache.set(url,lastmod,namespace='Last-Modified')
+        logging.info("mf2parseWithCaching: setting memcache  etag '%s' lastmod '%s'" % ( etag, lastmod))
+        memcache.set(url,'reuse',time=3600,namespace='reuse')
     return mf2
     
 class MainPage(webapp2.RequestHandler):
@@ -56,9 +75,9 @@ class Feed(webapp2.RequestHandler):
         values["feed"] = feedblob["feed"]
         values["entries"] = feedblob["entries"]
         for entry in values["entries"]:
-            if "published" in entry:
+            if "published" in entry and entry["published_parsed"]:
                 entry["iso_published"] =  datetime.datetime(*entry["published_parsed"][:6]).isoformat()
-            if "updated" in entry:
+            if "updated" in entry and entry["updated_parsed"]:
                 entry["iso_updated"] = datetime.datetime(*entry["updated_parsed"][:6]).isoformat()
         if len(values["entries"]) ==0:
             values["entries"]=["no entries"]
@@ -85,7 +104,7 @@ class HoverCard(webapp2.RequestHandler):
         url = self.request.get('url')
         values={"url":url}
         if "://" not in url:
-            url = "http://"+url
+            url = str("http://"+url)
         mf2 = mf2parseWithCaching(url)
         for item in mf2["items"]:
             if item["type"][0].startswith('h-card'):
@@ -110,7 +129,12 @@ class Microformats(webapp2.RequestHandler):
         if html:
             self.redirect("/?"+urllib.urlencode({'html':html,'pretty':prettyText}))
         elif url:
-            mf2json = mf2py.Parser(doc=urllib2.urlopen(url), url=url).to_json(pretty)
+            mf2 = mf2parseWithCaching(url)
+            if pretty:
+                mf2json = json.dumps(mf2,indent=4, separators=(', ', ': '))
+            else:
+                mf2json = json.dumps(mf2)
+            #mf2json = mf2py.Parser(doc=urllib2.urlopen(url), url=url).to_json(pretty)
             self.response.headers['Content-Type'] = 'application/json'
             self.response.write(mf2json)
 

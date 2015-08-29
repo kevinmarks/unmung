@@ -9,7 +9,7 @@ h1 {display: -webkit-flex; display:flex;
     -webkit-flex-shrink:1; flex-shrink:1;}
 h2 {display: -webkit-flex; display:flex; 
     font-weight: 300; margin:0; 
-    -webkit-flex-grow:2; flex-grow:2;}
+    -webkit-flex-grow:2; flex-grow:2; font-size:5vw;}
 text {font-size:20vh;}
 a { text-decoration:none;}
 .figure {-webkit-flex-grow:1; flex-grow:1; max-width:20%; height:100%;}
