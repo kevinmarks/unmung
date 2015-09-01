@@ -7,11 +7,13 @@
 <link href="styles/hfeed.css" media="all" rel="stylesheet" type="text/css" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="static/fragmention.js"></script>
+<style>
+body { display: inline; }
+</style>
 </head>
   <body>
-
 {% for url in urls %}
-    <iframe src ="/hovercard?url={{url}}" height="256" width="320" >{{url}}</iframe>
+    <a href="/mf2?url={{url}}&pretty=on" target="unmung"> <iframe src ="/hovercard?url={{url}}" height="256" width="320" >{{url}}</iframe></a>
 {% endfor %}
 </body>
 </html>

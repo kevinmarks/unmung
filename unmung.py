@@ -100,7 +100,11 @@ class IndieCard(webapp2.RequestHandler):
 
 class HoverTest(webapp2.RequestHandler):
     def get(self):
-        urls =["http://werd.io","http://kevinmarks.com","http://tantek.com","http://chocolateandvodka.com/",]
+        urls =["http://werd.io","http://kevinmarks.com","https://tantek.com",
+        "http://chocolateandvodka.com/","https://kylewm.com/","https://snarfed.org/",
+        "http://laurelschwulst.com/","http://pmckay.com/","http://giudici.us/",
+        "http://cascadesf.com/","http://kathyems.wordpress.com/",
+        "http://www.katiejohnson.me/whatimthinking.html","http://ma.tt"]
         template = JINJA_ENVIRONMENT.get_template('hovertest.html')
         values={"urls":urls}
         self.response.write(template.render(values))
@@ -179,8 +183,11 @@ class HoverCard2(webapp2.RequestHandler):
                                 "summary": " ".join(entry["properties"].get("summary",[])),
                                 "url":entry["properties"].get("url",[""])[0]})
             values["entries"] = entries
-        template = JINJA_ENVIRONMENT.get_template('hovercard2.html')
-        self.response.write(template.render(values))
+        if False and values["name"] == url:
+            self.redirect(str(url))
+        else:
+            template = JINJA_ENVIRONMENT.get_template('hovercard2.html')
+            self.response.write(template.render(values))
 
 
 
