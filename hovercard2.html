@@ -1,0 +1,32 @@
+<html>
+<head><title>{{name}}</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="styles/hovercard2.css" media="all" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div class="{{type}} indiecard">
+{% if banner %}
+<div class="u-banner">
+<img src={{banner}}
+</div>
+{% endif %}
+<h1 >{% if photo %}
+<a class="figure" href="{{url}}"><img src="{{photo}}" class="u-photo" /></a>
+{% endif %}
+<a class="u-url p-name" href="{{url}}">
+<svg width="100%" height="100%"><text x="0%"  y="80%" font-size="30vh"  textLength="100%" lengthAdjust="spacingAndGlyphs">{{name}}</text></svg>
+</a></h1>
+{% if summary %}
+<h2 class="e-summary">{{summary}}</h2>
+{% endif %}
+{% if entries %}
+{% for entry in entries %}
+<div class="h-entry"><a href="{{entry.url}}"><h3 class="e-name">{{entry.name}}</h3></a>
+<p class="e-summary">{{entry.summary}}</p>
+</div>
+{% endfor %}
+{% endif %}
+</div>
+</body>
+</html>

@@ -120,6 +120,61 @@ class HoverCard(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('hovercard.html')
         self.response.write(template.render(values))
 
+class HoverCard2(webapp2.RequestHandler):
+    #like indiecard but to be iframed
+    def get(self):
+        url = self.request.get('url')
+        values={"url":url}
+        if "://" not in url:
+            url = str("http://"+url)
+        values= {"url": url,
+            "banner":"/static/landscape2.jpg",
+            "photo":"",
+            "name":url,
+            "summary":"",
+            "entries":[{"name":"No entry","summary":"which is a shame"}],
+            }
+        mf2 = mf2parseWithCaching(url)
+        hcard=None
+        hfeed=None
+        hentries=[]
+        for item in mf2["items"]:
+            if not hcard and item["type"][0].startswith('h-card'):
+                hcard = item
+            if not hcard and "author" in item["properties"] and item["properties"]["author"][0]["type"][0].startswith('h-card'):
+                hcard= item["properties"]["author"][0]
+            if not hfeed and item["type"][0].startswith('h-feed'):
+                hfeed=item
+            if item["type"][0].startswith('h-entry'):
+                hentries.append(item)
+        if hcard:
+            values["name"] = " ".join(hcard["properties"].get("name",[]))
+            if hcard["properties"].get("photo"):
+                values["photo"] = hcard["properties"].get("photo")[0]
+            if hcard.get("note"):
+                if hcard["properties"].get("note")[0]["html"]:
+                    values["summary"] = hcard["properties"].get("note")[0]["html"]
+                else:
+                    values["summary"] = " ".join(hcard["properties"].get("note"))
+        if hfeed:
+            if hfeed["properties"].get("summary"):
+               values["summary"] = " ".join(hfeed["properties"].get("summary"))
+            if not hentries:
+                for item in hfeed.get("children",[]):
+                    if item["type"][0].startswith('h-entry'):
+                        hentries.append(item)
+        if hentries:
+            entries=[]
+            for entry in hentries[:2]:
+                entries.append({"name":" ".join(entry["properties"].get("name",[])),
+                                "summary": " ".join(entry["properties"].get("summary",[])),
+                                "url":entry["properties"].get("url",[""])[0]})
+            values["entries"] = entries
+        template = JINJA_ENVIRONMENT.get_template('hovercard2.html')
+        self.response.write(template.render(values))
+
+
+
 class Microformats(webapp2.RequestHandler):
     def get(self):
         url = self.request.get('url')
@@ -169,9 +224,11 @@ application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/feed',Feed),
     ('/indiecard',IndieCard),
-    ('/hovercard',HoverCard),
+    ('/hovercard',HoverCard2),
     ('/ello',Ello),
     ('/mf2',Microformats),
-    ('/autolink',Autolink)
+    ('/autolink',Autolink),
+    ('/hc2',HoverCard),
+    
 
 ], debug=True)
