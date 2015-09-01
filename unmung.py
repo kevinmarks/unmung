@@ -98,6 +98,13 @@ class IndieCard(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('indiecard.html')
         self.response.write(template.render(values))
 
+class HoverTest(webapp2.RequestHandler):
+    def get(self):
+        urls =["http://werd.io","http://kevinmarks.com","http://tantek.com","http://chocolateandvodka.com/",]
+        template = JINJA_ENVIRONMENT.get_template('hovertest.html')
+        values={"urls":urls}
+        self.response.write(template.render(values))
+
 class HoverCard(webapp2.RequestHandler):
     #like indiecard but to be iframed
     def get(self):
@@ -163,6 +170,8 @@ class HoverCard2(webapp2.RequestHandler):
                 for item in hfeed.get("children",[]):
                     if item["type"][0].startswith('h-entry'):
                         hentries.append(item)
+                if not hcard and "author" in item["properties"] and item["properties"]["author"][0]["type"][0].startswith('h-card'):
+                    hcard= item["properties"]["author"][0]
         if hentries:
             entries=[]
             for entry in hentries[:2]:
@@ -229,6 +238,7 @@ application = webapp2.WSGIApplication([
     ('/mf2',Microformats),
     ('/autolink',Autolink),
     ('/hc2',HoverCard),
+    ('/hovertest',HoverTest),
     
 
 ], debug=True)
