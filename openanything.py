@@ -12,6 +12,8 @@ __license__ = 'Python'
 
 import urllib2, urlparse, gzip
 from StringIO import StringIO
+import logging
+
 
 USER_AGENT = 'OpenAnything/%s +http://diveintopython.org/http_web_services/' % __version__
 
@@ -20,13 +22,14 @@ class SmartRedirectHandler(urllib2.HTTPRedirectHandler):
         result = urllib2.HTTPRedirectHandler.http_error_301(
             self, req, fp, code, msg, headers)
         result.status = code
-        print result
+        logging.info("http_error_301: - for '%s'"  % (req.get_full_url()))
         return result
 
     def http_error_302(self, req, fp, code, msg, headers):
         result = urllib2.HTTPRedirectHandler.http_error_302(
             self, req, fp, code, msg, headers)
         result.status = code
+        logging.info("http_error_302: - for '%s'"  % (req.get_full_url()))
         return result
 
 class DefaultErrorHandler(urllib2.HTTPDefaultErrorHandler):
@@ -34,7 +37,7 @@ class DefaultErrorHandler(urllib2.HTTPDefaultErrorHandler):
         result = urllib2.HTTPError(
             req.get_full_url(), code, msg, headers, fp)
         result.status = code
-        print result
+        logging.info("http_error_default: %s - for '%s'"  % (str(code),req.get_full_url()))
         return result
 
 def openAnything(source, etag=None, lastmodified=None, agent=USER_AGENT):
@@ -53,6 +56,7 @@ def openAnything(source, etag=None, lastmodified=None, agent=USER_AGENT):
     If the agent argument is supplied, it will be used as the value of a
     User-Agent request header.
     """
+    logging.info("openAnything:  '%s'"  % (str(source)))
 
     if hasattr(source, 'read'):
         return source

@@ -15,6 +15,7 @@ import json
 import openanything
 from google.appengine.api import urlfetch
 from google.appengine.api import memcache
+from google.appengine.api import taskqueue
 
 import logging
 
@@ -24,19 +25,33 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
-    
-def mf2parseWithCaching(url):
+
+def fixurl(url):
+    if url:
+        if "://" not in url:
+            url = "http://"+url
+    return url
+
+
+def mf2parseWithCaching(url,fetch=False):
     etag = memcache.get(url,namespace='ETag')
     lastmod = memcache.get(url,namespace='Last-Modified')
     reuse = memcache.get(url,namespace='reuse')
-    mf2 = None
-    logging.info("mf2parseWithCaching: url '%s' etag '%s' lastmod '%s'" % (url, etag, lastmod))
-    params = openanything.fetch(url, etag, lastmod, useragent)
-    #logging.info("mf2parseWithCaching: openanything params '%s' " % (params))
-    if params.get('status') == 304 or params.get('data') == '' or reuse :
-        logging.info("mf2parseWithCaching: - using cached '%s'"  % (reuse))
-        mf2 = memcache.get(url,namespace='mf2')
+    mf2 = memcache.get(url,namespace='mf2')
+    logging.info("mf2parseWithCaching: url '%s' etag '%s' lastmod '%s' reuse=%s fetch=%s mf2='%s'" % (url, etag, lastmod,reuse, fetch, str(mf2)[:30]))
+    if fetch or not mf2:
+        params = openanything.fetch(url, etag, lastmod, useragent)
+        #logging.info("mf2parseWithCaching: openanything params '%s' " % (params))
+        if params.get('status') == 304 or params.get('data') == '' :
+            logging.info("mf2parseWithCaching: - using cached '%s'"  % (url))
+        else:
+            mf2=None #reparse and set cache
+    else:
+        taskurl = '/refreshmf2cache/'+url
+        logging.info("mf2parseWithCaching: - queing task '%s'"  % (taskurl))
+        taskqueue.add(url=taskurl)
     if mf2 is None:
+        logging.info("mf2parseWithCaching: - parsing '%s'"  % (url))
         mf2 = mf2py.Parser(params['data'], url=url).to_dict()
         memcache.set(url,mf2,namespace='mf2')
         etag = params.get('etag')
@@ -47,6 +62,13 @@ def mf2parseWithCaching(url):
         memcache.set(url,'reuse',time=3600,namespace='reuse')
     return mf2
     
+class RefreshMF2Cache(webapp2.RequestHandler):
+    def post(self,url):
+        url = urllib.unquote(url)
+        logging.info("RefreshMF2Cache: '%s'"  % (url))
+        mf2parseWithCaching(url,fetch=True)
+        self.response.write("OK") 
+
 class MainPage(webapp2.RequestHandler):
     def get(self):
         html = self.request.get('html')
@@ -69,7 +91,7 @@ class MainPage(webapp2.RequestHandler):
         
 class Feed(webapp2.RequestHandler):
     def get(self):
-        url = self.request.get('feed')
+        url = fixurl(self.request.get('feed'))
         values = {"url": url, "feed":"no feed found","entries":[],"raw":self.request.get('raw'),"feeds":[url]}
         feedblob = feedparser.parse(url)
         values["feed"] = feedblob["feed"]
@@ -86,10 +108,8 @@ class Feed(webapp2.RequestHandler):
 
 class IndieCard(webapp2.RequestHandler):
     def get(self):
-        url = self.request.get('url')
+        url = fixurl(self.request.get('url'))
         values={"url":url}
-        if "://" not in url:
-            url = "http://"+url
         mf2 = mf2parseWithCaching(url)
         for item in mf2["items"]:
             if not item["type"][0].startswith('h-x-'):
@@ -100,11 +120,12 @@ class IndieCard(webapp2.RequestHandler):
 
 class HoverTest(webapp2.RequestHandler):
     def get(self):
-        urls =["http://werd.io","http://kevinmarks.com","https://tantek.com",
+        urls =["http://werd.io","http://kevinmarks.com","http://tantek.com",
         "http://chocolateandvodka.com/","https://kylewm.com/","https://snarfed.org/",
         "http://laurelschwulst.com/","http://pmckay.com/","http://giudici.us/",
         "http://cascadesf.com/","http://kathyems.wordpress.com/",
-        "http://www.katiejohnson.me/whatimthinking.html","http://ma.tt"]
+        "http://www.katiejohnson.me/whatimthinking.html","http://ma.tt",
+        "http://known.kevinmarks.com","http://epeus.blogspot.com","http://twitter.com/kevinmarks"]
         template = JINJA_ENVIRONMENT.get_template('hovertest.html')
         values={"urls":urls}
         self.response.write(template.render(values))
@@ -112,10 +133,8 @@ class HoverTest(webapp2.RequestHandler):
 class HoverCard(webapp2.RequestHandler):
     #like indiecard but to be iframed
     def get(self):
-        url = self.request.get('url')
+        url = fixurl(self.request.get('url'))
         values={"url":url}
-        if "://" not in url:
-            url = str("http://"+url)
         mf2 = mf2parseWithCaching(url)
         for item in mf2["items"]:
             if item["type"][0].startswith('h-card'):
@@ -131,13 +150,22 @@ class HoverCard(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('hovercard.html')
         self.response.write(template.render(values))
 
+def findCardFeedEntries(item,hcard,hfeed,hentries):
+    if not hcard and item["type"][0].startswith('h-card'):
+        hcard = item
+    if not hcard and "author" in item["properties"] and item["properties"]["author"][0]["type"][0].startswith('h-card'):
+        hcard= item["properties"]["author"][0]
+    if not hfeed and item["type"][0].startswith('h-feed'):
+        hfeed=item
+    if item["type"][0].startswith('h-entry'):
+        hentries.append(item)
+    return hcard,hfeed,hentries
+
+
 class HoverCard2(webapp2.RequestHandler):
     #like indiecard but to be iframed
     def get(self):
-        url = self.request.get('url')
-        values={"url":url}
-        if "://" not in url:
-            url = str("http://"+url)
+        url = fixurl(self.request.get('url'))
         values= {"url": url,
             "banner":"/static/landscape2.jpg",
             "photo":"",
@@ -150,14 +178,22 @@ class HoverCard2(webapp2.RequestHandler):
         hfeed=None
         hentries=[]
         for item in mf2["items"]:
-            if not hcard and item["type"][0].startswith('h-card'):
-                hcard = item
-            if not hcard and "author" in item["properties"] and item["properties"]["author"][0]["type"][0].startswith('h-card'):
-                hcard= item["properties"]["author"][0]
-            if not hfeed and item["type"][0].startswith('h-feed'):
-                hfeed=item
-            if item["type"][0].startswith('h-entry'):
-                hentries.append(item)
+            hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
+            for subitem in item.get("children",[]):
+                hcard,hfeed,hentries = findCardFeedEntries(subitem,hcard,hfeed,hentries)
+        if hfeed:
+            if hfeed["properties"].get("summary"):
+               values["summary"] = " ".join(hfeed["properties"].get("summary"))
+            if not hentries:
+                for item in hfeed.get("children",[]):
+                    hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
+        if hentries:
+            entries=[]
+            for entry in hentries[:2]:
+                entries.append({"name":" ".join(entry["properties"].get("name",[])),
+                                "summary": " ".join(entry["properties"].get("summary",[])),
+                                "url":entry["properties"].get("url",[""])[0]})
+            values["entries"] = entries
         if hcard:
             values["name"] = " ".join(hcard["properties"].get("name",[]))
             if hcard["properties"].get("photo"):
@@ -167,22 +203,6 @@ class HoverCard2(webapp2.RequestHandler):
                     values["summary"] = hcard["properties"].get("note")[0]["html"]
                 else:
                     values["summary"] = " ".join(hcard["properties"].get("note"))
-        if hfeed:
-            if hfeed["properties"].get("summary"):
-               values["summary"] = " ".join(hfeed["properties"].get("summary"))
-            if not hentries:
-                for item in hfeed.get("children",[]):
-                    if item["type"][0].startswith('h-entry'):
-                        hentries.append(item)
-                if not hcard and "author" in item["properties"] and item["properties"]["author"][0]["type"][0].startswith('h-card'):
-                    hcard= item["properties"]["author"][0]
-        if hentries:
-            entries=[]
-            for entry in hentries[:2]:
-                entries.append({"name":" ".join(entry["properties"].get("name",[])),
-                                "summary": " ".join(entry["properties"].get("summary",[])),
-                                "url":entry["properties"].get("url",[""])[0]})
-            values["entries"] = entries
         if False and values["name"] == url:
             self.redirect(str(url))
         else:
@@ -193,7 +213,7 @@ class HoverCard2(webapp2.RequestHandler):
 
 class Microformats(webapp2.RequestHandler):
     def get(self):
-        url = self.request.get('url')
+        url = fixurl(self.request.get('url'))
         html = self.request.get('html')
         prettyText = self.request.get('pretty','')
         pretty = prettyText == 'on'
@@ -246,6 +266,7 @@ application = webapp2.WSGIApplication([
     ('/autolink',Autolink),
     ('/hc2',HoverCard),
     ('/hovertest',HoverTest),
+    ('/refreshmf2cache/(.*)',RefreshMF2Cache),
     
 
 ], debug=True)
