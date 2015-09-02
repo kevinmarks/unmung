@@ -6,7 +6,7 @@ import datetime
 import html5lib
 import mf2py
 import cassis
-
+import urlparse
 
 
 import jinja2
@@ -30,6 +30,11 @@ def fixurl(url):
     if url:
         if "://" not in url:
             url = "http://"+url
+    if "twitter.com" in url and '/intent/' not in url:
+        urlbits= list(urlparse.urlsplit(url))
+        urlbits[3] = urllib.urlencode({"screen_name": urlbits[2][1:]})
+        urlbits[2] = '/intent/user'
+        url=urlparse.urlunsplit(urlbits)
     return url
 
 
@@ -47,7 +52,7 @@ def mf2parseWithCaching(url,fetch=False):
         else:
             mf2=None #reparse and set cache
     else:
-        taskurl = '/refreshmf2cache/'+url
+        taskurl = '/refreshmf2cache/'+urllib.quote(url)
         logging.info("mf2parseWithCaching: - queing task '%s'"  % (taskurl))
         taskqueue.add(url=taskurl)
     if mf2 is None:
@@ -122,10 +127,11 @@ class HoverTest(webapp2.RequestHandler):
     def get(self):
         urls =["http://werd.io","http://kevinmarks.com","http://tantek.com",
         "http://chocolateandvodka.com/","https://kylewm.com/","https://snarfed.org/",
-        "http://laurelschwulst.com/","http://pmckay.com/","http://giudici.us/",
+        "http://laurelschwulst.com/","http://pmckay.com","http://giudici.us/",
         "http://cascadesf.com/","http://kathyems.wordpress.com/",
         "http://www.katiejohnson.me/whatimthinking.html","http://ma.tt",
-        "http://known.kevinmarks.com","http://epeus.blogspot.com","http://twitter.com/kevinmarks"]
+        "http://known.kevinmarks.com","http://epeus.blogspot.com",
+        "http://twitter.com/kevinmarks",'https://twitter.com/intent/user?screen_name=kevinmarks']
         template = JINJA_ENVIRONMENT.get_template('hovertest.html')
         values={"urls":urls}
         self.response.write(template.render(values))
@@ -198,8 +204,8 @@ class HoverCard2(webapp2.RequestHandler):
             values["name"] = " ".join(hcard["properties"].get("name",[]))
             if hcard["properties"].get("photo"):
                 values["photo"] = hcard["properties"].get("photo")[0]
-            if hcard.get("note"):
-                if hcard["properties"].get("note")[0]["html"]:
+            if  hcard["properties"].get("note"):
+                if type(hcard["properties"].get("note")[0]) is dict:
                     values["summary"] = hcard["properties"].get("note")[0]["html"]
                 else:
                     values["summary"] = " ".join(hcard["properties"].get("note"))

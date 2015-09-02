@@ -18,7 +18,9 @@
 <svg width="100%" height="100%"><text x="0%"  y="80%" font-size="30vh"  textLength="100%" lengthAdjust="spacingAndGlyphs">{{name}}</text></svg>
 </a></h1>
 {% if summary %}
+{% autoescape false %}
 <h2 class="e-summary">{{summary}}</h2>
+{% endautoescape  %}
 {% endif %}
 {% if entries %}
 {% for entry in entries %}
