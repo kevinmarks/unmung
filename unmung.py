@@ -43,21 +43,34 @@ def mf2parseWithCaching(url,fetch=False):
     lastmod = memcache.get(url,namespace='Last-Modified')
     reuse = memcache.get(url,namespace='reuse')
     mf2 = memcache.get(url,namespace='mf2')
+    params={}
     logging.info("mf2parseWithCaching: url '%s' etag '%s' lastmod '%s' reuse=%s fetch=%s mf2='%s'" % (url, etag, lastmod,reuse, fetch, str(mf2)[:30]))
     if fetch or not mf2:
-        params = openanything.fetch(url, etag, lastmod, useragent)
-        #logging.info("mf2parseWithCaching: openanything params '%s' " % (params))
-        if params.get('status') == 304 or params.get('data') == '' :
+        if not mf2:
+            # need to actually fetch the URL
+            etag,lastmod,reuse = None,None,None
+        if etag or lastmod:
+            # if they're nice enough to support these, respect their updated state
+            reuse=None
+        if not reuse:
+            try:
+                params = openanything.fetch(url, etag, lastmod, useragent)
+            except Exception,e:
+                logging.info("mf2parseWithCaching: openanything '%s' fail '%s' " % (params,e))
+        else:
+            logging.info("mf2parseWithCaching: - reuse '%s'"  % (url))
+        if params.get('status') == 304 or params.get('data','') == '' and not reuse:
             logging.info("mf2parseWithCaching: - using cached '%s'"  % (url))
         else:
             mf2=None #reparse and set cache
+            logging.info("mf2parseWithCaching: - forcing reparse '%s'"  % (url))
     else:
         taskurl = '/refreshmf2cache/'+urllib.quote(url)
         logging.info("mf2parseWithCaching: - queing task '%s'"  % (taskurl))
         taskqueue.add(url=taskurl)
-    if mf2 is None:
+    if mf2 is None and params:
         logging.info("mf2parseWithCaching: - parsing '%s'"  % (url))
-        mf2 = mf2py.Parser(params['data'], url=url).to_dict()
+        mf2 = mf2py.Parser(params.get('data',''), url=url).to_dict()
         memcache.set(url,mf2,namespace='mf2')
         etag = params.get('etag')
         memcache.set(url,etag,namespace='ETag')
@@ -130,8 +143,9 @@ class HoverTest(webapp2.RequestHandler):
         "http://laurelschwulst.com/","http://pmckay.com","http://giudici.us/",
         "http://cascadesf.com/","http://kathyems.wordpress.com/",
         "http://www.katiejohnson.me/whatimthinking.html","http://ma.tt",
-        "http://known.kevinmarks.com","http://epeus.blogspot.com",
-        "http://twitter.com/kevinmarks",'https://twitter.com/intent/user?screen_name=kevinmarks']
+        "http://known.kevinmarks.com","http://epeus.blogspot.com","https://plus.google.com/+KevinMarks",
+        "http://twitter.com/kevinmarks",'http://about.me/thisisdeb','http://rickydesign.me/',
+        'http://www.unmung.com/feed?feed=https%3A%2F%2Fkathyems.wordpress.com%2Ffeed%2F',]
         template = JINJA_ENVIRONMENT.get_template('hovertest.html')
         values={"urls":urls}
         self.response.write(template.render(values))
@@ -167,6 +181,21 @@ def findCardFeedEntries(item,hcard,hfeed,hentries):
         hentries.append(item)
     return hcard,hfeed,hentries
 
+def getTextOrHTML(item):
+    if len(item) <1:
+        return '' 
+    if type(item[0]) is dict:
+        return item[0]["html"]
+    else:
+        return " ".join(item)
+
+def getTextOrValue(item):
+    if len(item) <1:
+        return '' 
+    if type(item[0]) is dict:
+        return item[0]["value"]
+    else:
+        return " ".join(item)
 
 class HoverCard2(webapp2.RequestHandler):
     #like indiecard but to be iframed
@@ -183,37 +212,37 @@ class HoverCard2(webapp2.RequestHandler):
         hcard=None
         hfeed=None
         hentries=[]
-        for item in mf2["items"]:
-            hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
-            for subitem in item.get("children",[]):
-                hcard,hfeed,hentries = findCardFeedEntries(subitem,hcard,hfeed,hentries)
-        if hfeed:
-            if hfeed["properties"].get("summary"):
-               values["summary"] = " ".join(hfeed["properties"].get("summary"))
-            if not hentries:
-                for item in hfeed.get("children",[]):
-                    hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
-        if hentries:
-            entries=[]
-            for entry in hentries[:2]:
-                entries.append({"name":" ".join(entry["properties"].get("name",[])),
-                                "summary": " ".join(entry["properties"].get("summary",[])),
-                                "url":entry["properties"].get("url",[""])[0]})
-            values["entries"] = entries
-        if hcard:
-            values["name"] = " ".join(hcard["properties"].get("name",[]))
-            if hcard["properties"].get("photo"):
-                values["photo"] = hcard["properties"].get("photo")[0]
-            if  hcard["properties"].get("note"):
-                if type(hcard["properties"].get("note")[0]) is dict:
-                    values["summary"] = hcard["properties"].get("note")[0]["html"]
-                else:
-                    values["summary"] = " ".join(hcard["properties"].get("note"))
-        if False and values["name"] == url:
-            self.redirect(str(url))
+        if mf2:
+            for item in mf2["items"]:
+                hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
+                for subitem in item.get("children",[]):
+                    hcard,hfeed,hentries = findCardFeedEntries(subitem,hcard,hfeed,hentries)
+            if hfeed:
+                if hfeed["properties"].get("summary"):
+                   values["summary"] = getTextOrHTML(hfeed["properties"].get("summary"))
+                if not hentries:
+                    for item in hfeed.get("children",[]):
+                        hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
+            if hentries:
+                entries=[]
+                for entry in hentries[:2]:
+                    entries.append({"name":getTextOrValue(entry["properties"].get("name",[])),
+                                    "summary": getTextOrHTML(entry["properties"].get("summary",[])),
+                                    "url":entry["properties"].get("url",[""])[0]})
+                values["entries"] = entries
+            if hcard:
+                values["name"] = getTextOrHTML(hcard["properties"].get("name",[]))
+                if hcard["properties"].get("photo"):
+                    values["photo"] = hcard["properties"].get("photo")[0]
+                if  hcard["properties"].get("note"):
+                    values["summary"] = getTextOrHTML(hcard["properties"].get("note"))
+                if  hcard["properties"].get("summary"):
+                    values["summary"] = getTextOrHTML(hcard["properties"].get("summary"))
+        if values["name"] == url:
+            template = JINJA_ENVIRONMENT.get_template('shrunkensite.html')
         else:
             template = JINJA_ENVIRONMENT.get_template('hovercard2.html')
-            self.response.write(template.render(values))
+        self.response.write(template.render(values))
 
 
 
