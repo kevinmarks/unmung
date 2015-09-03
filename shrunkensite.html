@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+<head><title>hovercard test</title>
+<meta charset="utf-8">
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {margin:0px;}
+iframe {border:0; position: absolute;
+  top:0;
+  left: 0; width:200%; height:200%;
+  transform: scale(.5);
+transform-origin: top left;
+}
+</style>
+</head>
+  <body>
+<iframe sandbox="allow-same-origin allow-scripts" seamless src ="{{url}}"  >{{url}}</iframe></a>
+</body>
+</html>
+{% endautoescape %}
