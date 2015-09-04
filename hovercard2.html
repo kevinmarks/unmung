@@ -22,6 +22,12 @@
 <h2 class="e-summary">{{summary}}</h2>
 {% endautoescape  %}
 {% endif %}
+{% if org %}
+{% autoescape false %}
+<h3 class="p-org h-card">{{org}}</h3>
+{% endautoescape  %}
+{% endif %}
+
 {% if entries %}
 {% for entry in entries %}
 <div class="h-entry"><a href="{{entry.url}}"><h3 class="e-name">{{entry.name}}</h3></a>

@@ -136,6 +136,14 @@ class IndieCard(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('indiecard.html')
         self.response.write(template.render(values))
 
+class MultiTest(webapp2.RequestHandler):
+    def get(self):
+        urls =["http://kevinmarks.com"]*20
+        template = JINJA_ENVIRONMENT.get_template('hovertest.html')
+        values={"urls":urls}
+        self.response.write(template.render(values))
+
+
 class HoverTest(webapp2.RequestHandler):
     def get(self):
         urls =["http://werd.io","http://kevinmarks.com","http://tantek.com",
@@ -196,6 +204,23 @@ def getTextOrValue(item):
         return item[0]["value"]
     else:
         return " ".join(item)
+        
+def getTextOrHcard(item):
+    if len(item) <1:
+        return '' 
+    if type(item[0]) is dict:
+        html = item[0].get("html","")
+        if html:
+             return html
+        elif "h-card" in item[0].get("type",[]):
+            url = getTextOrValue(item[0]["properties"].get("url",[]))
+            name = getTextOrValue(item[0]["properties"].get("name",[]))
+            return '<a href="%s">%s</a>' % (url,name)
+        else:
+            return item[0]["value"]
+    else:
+        return " ".join(item)
+
 
 class HoverCard2(webapp2.RequestHandler):
     #like indiecard but to be iframed
@@ -206,7 +231,7 @@ class HoverCard2(webapp2.RequestHandler):
             "photo":"",
             "name":url,
             "summary":"",
-            "entries":[{"name":"No entry","summary":"which is a shame"}],
+            "entries":[],
             }
         mf2 = mf2parseWithCaching(url)
         hcard=None
@@ -238,10 +263,14 @@ class HoverCard2(webapp2.RequestHandler):
                     values["summary"] = getTextOrHTML(hcard["properties"].get("note"))
                 if  hcard["properties"].get("summary"):
                     values["summary"] = getTextOrHTML(hcard["properties"].get("summary"))
+                if  hcard["properties"].get("org"):
+                    values["org"] = getTextOrHcard(hcard["properties"].get("org"))
         if values["name"] == url:
             template = JINJA_ENVIRONMENT.get_template('shrunkensite.html')
         else:
             template = JINJA_ENVIRONMENT.get_template('hovercard2.html')
+        self.response.headers["Cache-Control"] = "public, max-age=600"
+        logging.info(self.response.headers)
         self.response.write(template.render(values))
 
 
@@ -301,6 +330,7 @@ application = webapp2.WSGIApplication([
     ('/autolink',Autolink),
     ('/hc2',HoverCard),
     ('/hovertest',HoverTest),
+    ('/multitest',MultiTest),
     ('/refreshmf2cache/(.*)',RefreshMF2Cache),
     
 
