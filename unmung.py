@@ -219,7 +219,7 @@ def getTextOrHcard(item):
         else:
             return item[0]["value"]
     else:
-        return " ".join(item)
+        return item[0]
 
 
 class HoverCard2(webapp2.RequestHandler):
@@ -227,7 +227,7 @@ class HoverCard2(webapp2.RequestHandler):
     def get(self):
         url = fixurl(self.request.get('url'))
         values= {"url": url,
-            "banner":"/static/landscape2.jpg",
+            "banner":"",
             "photo":"",
             "name":url,
             "summary":"",
