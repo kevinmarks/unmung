@@ -3,11 +3,13 @@ import urllib2
 import urllib
 import feedparser
 import datetime
+import time
 import html5lib
 import mf2py
 import cassis
 import urlparse
-
+import hashlib
+import email.utils
 
 import jinja2
 import webapp2
@@ -221,8 +223,37 @@ def getTextOrHcard(item):
     else:
         return item[0]
 
+class RequestHandlerWith304(webapp2.RequestHandler):
+  def get_etag(self):
+    request_etag = None
+    if 'If-None-Match' in self.request.headers:
+      request_etag = self.request.headers['If-None-Match']
+      if request_etag.startswith('"') and request_etag.endswith('"'):
+        request_etag = request_etag[1:-1]
+    return request_etag
 
-class HoverCard2(webapp2.RequestHandler):
+  def get_last_modified(self):
+    if 'If-Modified-Since' in self.request.headers:
+      text = self.request.headers['If-Modified-Since']
+      return datetime.datetime(*email.utils.parsedate(text)[:6])
+    return None
+
+  # Wed, 22 Oct 2008 10:52:40 GMT
+  def time_to_rfc1123(self, target):
+    stamp = time.mktime(target.timetuple())
+    return email.utils.formatdate(timeval=stamp, localtime=False, usegmt=True)
+
+  def response_not_modified(self, etag, last_modified):
+    if etag:
+      self.response.headers["Etag"] = etag
+      #self.response.etag = etag
+    if last_modified:
+      self.response.headers["Last-Modified"] = self.time_to_rfc1123(last_modified)
+    self.response.status_int = 304
+    self.response.status_message = "Not Modified"
+    self.response.status = "304 Not Modified"
+
+class HoverCard2(RequestHandlerWith304):
     #like indiecard but to be iframed
     def get(self):
         url = fixurl(self.request.get('url'))
@@ -237,6 +268,36 @@ class HoverCard2(webapp2.RequestHandler):
         hcard=None
         hfeed=None
         hentries=[]
+        seenbefore = memcache.get(url,namespace="seenbefore")
+        if not seenbefore:
+            etag = hashlib.md5(json.dumps(mf2)).hexdigest()
+            last_modified = memcache.get(url,namespace='Last-Modified')
+            if last_modified:
+                last_modified = datetime.datetime(*email.utils.parsedate(last_modified)[:6])
+            else:
+                last_modified = datetime.datetime.now()
+            seenbefore = {"etag":etag,"last_modified":last_modified}
+            memcache.set(url, seenbefore, namespace="seenbefore")
+        # validate last-modified : if-modified-since
+        request_last = self.get_last_modified()
+        logging.info("'%s' has last mod date %s" %(url,request_last))
+        if request_last is not None:
+          if seenbefore.get("last_modified") - request_last < datetime.timedelta(seconds=1):
+            logging.info("'%s' seenbefore with date %s" %(url,request_last))
+            return self.response_not_modified(etag=seenbefore.get("etag"),
+                                        last_modified=seenbefore.get("last_modified"))
+
+        # validate the etag : if-none-match
+        request_etag = self.get_etag()
+        logging.info("'%s' has etag '%s'" %(url,request_etag))
+        if request_etag is not None:
+          if request_etag == seenbefore.get("etag"): #matched
+            logging.info("'%s' seenbefore with etag '%s'" %(url,request_etag))
+            return self.response_not_modified(etag=seenbefore.get("etag"),
+                                        last_modified=seenbefore.get("last_modified"))
+
+        self.response.headers["Etag"] = seenbefore.get("etag")
+        self.response.headers["Last-Modified"] = self.time_to_rfc1123(seenbefore.get("last_modified") or datetime.datetime.now())
         if mf2:
             for item in mf2["items"]:
                 hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
