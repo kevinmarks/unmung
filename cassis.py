@@ -89,6 +89,10 @@ def auto_link(text, do_embed=False,maxUrlLength=0):
                 text = (text + '<a class="auto-link figure" href="' +
                         wmi, '"><video controls="controls" src="' +
                         wmi, '"></video></a>' + afterlink)
+            elif fe and (fe == '.mp3' or fe == '.m4a' or fe == '.ogg'  or fe == '.wav'):
+                text = (text + '<a class="auto-link figure" href="' +
+                        wmi, '"><audio controls="controls" src="' +
+                        wmi, '"></audio></a>' + afterlink)
             elif ih and hn == 'vimeo.com' and pa[1:].isdigit():
                 text = (text + '<a class="auto-link" href="' +
                         wmi + '">' + displayUrl + '</a> <iframe class="vimeo-player auto-link figure" width="480" height="385" style="border:0" src="' + prot + '//player.vimeo.com/video/' +
