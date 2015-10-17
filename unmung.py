@@ -138,6 +138,38 @@ class IndieCard(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('indiecard.html')
         self.response.write(template.render(values))
 
+class StoryCard(webapp2.RequestHandler):
+    def get(self):
+        url = fixurl(self.request.get('url'))
+        values={"url":url,"entries":[],}
+        mf2 = mf2parseWithCaching(url)
+        hcard=None
+        hfeed=None
+        hentries=[]
+        if mf2:
+            for item in mf2["items"]:
+                hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
+                for subitem in item.get("children",[]):
+                    hcard,hfeed,hentries = findCardFeedEntries(subitem,hcard,hfeed,hentries)
+            if hfeed:
+                if hfeed["properties"].get("summary"):
+                   values["summary"] = getTextOrHTML(hfeed["properties"].get("summary"))
+                if not hentries:
+                    for item in hfeed.get("children",[]):
+                        hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
+            if hentries:
+                entries=[]
+                for entry in hentries:
+                    entries.append({"name":getTextOrValue(entry["properties"].get("name",[])),
+                                    "summary": getTextOrHTML(entry["properties"].get("summary",[])),
+                                    "url":entry["properties"].get("url",[""])[0],
+                                    "published":entry["properties"].get("published",[""])[0],
+                                    "featured":entry["properties"].get("featured",[""])[0]})
+                values["entries"] = entries
+        template = JINJA_ENVIRONMENT.get_template('storycard.html')
+        self.response.write(template.render(values))
+
+
 class MultiTest(webapp2.RequestHandler):
     def get(self):
         urls =["http://kevinmarks.com"]*20
@@ -326,7 +358,7 @@ class HoverCard2(RequestHandlerWith304):
                     values["summary"] = getTextOrHTML(hcard["properties"].get("summary"))
                 if  hcard["properties"].get("org"):
                     values["org"] = getTextOrHcard(hcard["properties"].get("org"))
-        if values["name"] == url:
+        if values["name"] == url and values["entries"]==[]: # need to make this gentler for noterlive
             template = JINJA_ENVIRONMENT.get_template('shrunkensite.html')
         else:
             template = JINJA_ENVIRONMENT.get_template('hovercard2.html')
@@ -385,6 +417,7 @@ application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/feed',Feed),
     ('/indiecard',IndieCard),
+    ('/storycard',StoryCard),
     ('/hovercard',HoverCard2),
     ('/ello',Ello),
     ('/mf2',Microformats),

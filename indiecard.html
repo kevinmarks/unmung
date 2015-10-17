@@ -16,6 +16,8 @@
 <div class="{{item.type[0]}} indiecard">
 <h1 >{% if item.properties.photo %}
 <a class="figure" href="{{url}}"><img src="{{item.properties.photo[0]}}" class="u-photo" /></a>
+{% elif item.properties.featured %}
+<a class="figure" href="{{url}}"><img src="{{item.properties.featured[0]}}" class="u-featured" /></a>
 {% endif %}
 <a class="u-url p-name"" href="{{url}}">{{" ".join(item.properties.name)}}</a></h1>
 {% if item.properties.summary %}

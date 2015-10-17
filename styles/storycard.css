@@ -1,0 +1,13 @@
+body {margin:0; font-family: "Gill Sans", Roboto,Verdana, sans-serif;}
+.storycards { display: -webkit-flex; display:flex; -webkit-flex-wrap: wrap; flex-wrap: wrap;
+            -webkit-justify-content: space-around; justify-content: space-around; 
+            font-size:.75em;
+            }
+img {width: 220px; object-fit: cover;}
+li {list-style:none;}
+.card {width:240px; border:10px;}
+a { text-decoration:none;}
+h3 { 
+    font-weight: 400; 
+    font-size:1.5em;
+   }

@@ -1,0 +1,20 @@
+<html>
+<head><title>{{name}}</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="styles/storycard.css" media="all" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<ul class="storycards">{% if entries %}
+{% for entry in entries %}
+<li class="card"><div class="h-entry"><a href="{{entry.url}}">
+<img class="u-featured" src="{{entry.featured}}" />
+<h3 class="e-name">{{entry.name}}</h3></a>
+<p class="e-summary">{{entry.summary}}</p>
+<time class="dt-updated" datetime={{entry.updated}}></time>
+</div>
+{% endfor %}
+{% endif %}
+</ul>
+</body>
+</html>
