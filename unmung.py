@@ -164,6 +164,7 @@ class StoryCard(webapp2.RequestHandler):
                                     "summary": getTextOrHTML(entry["properties"].get("summary",[])),
                                     "url":entry["properties"].get("url",[""])[0],
                                     "published":entry["properties"].get("published",[""])[0],
+                                    "photo":entry["properties"].get("photo",[""])[0],
                                     "featured":entry["properties"].get("featured",[""])[0]})
                 values["entries"] = entries
         template = JINJA_ENVIRONMENT.get_template('storycard.html')

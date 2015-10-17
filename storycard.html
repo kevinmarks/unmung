@@ -8,10 +8,14 @@
 <ul class="storycards">{% if entries %}
 {% for entry in entries %}
 <li class="card"><div class="h-entry"><a href="{{entry.url}}">
+{% if entry.featured %}
 <img class="u-featured" src="{{entry.featured}}" />
-<h3 class="e-name">{{entry.name}}</h3></a>
-<p class="e-summary">{{entry.summary}}</p>
-<time class="dt-updated" datetime={{entry.updated}}></time>
+{% elif  entry.photo %}
+<img class="u-photo" src="{{entry.photo}}" />
+{% endif %}
+<h3 class="p-name">{{entry.name}}</h3></a>
+<p class="p-summary">{{entry.summary}}</p>
+<time class="dt-published" datetime={{entry.published}}></time>
 </div>
 {% endfor %}
 {% endif %}
