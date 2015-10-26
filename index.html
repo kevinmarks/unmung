@@ -42,6 +42,17 @@
       <div><input name="url" type="url"></input></div>
       <div><input type="submit" value="show storycards"></div>
     </form>
+  <h2>A tool to show json as html</h2>
+    <form action="/jsontoxoxo" method="get">
+      <div><input name="url" type="url"></input></div>
+      <div><input type="submit" value="to html"></div>
+    </form>
+  <h2>A tool to extract json from html lists</h2>
+    <form action="/xoxotojson" method="get">
+      <div><input name="url" type="url"></input></div>
+      <div><input name="pretty" type="checkbox" label="pretty print" checked="on"><label>pretty print</label></div> 
+      <div><input type="submit" value="to json"></div>
+    </form>
   </body>
 </html>
 {% endautoescape %}

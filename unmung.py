@@ -10,6 +10,7 @@ import cassis
 import urlparse
 import hashlib
 import email.utils
+import xoxo
 
 import jinja2
 import webapp2
@@ -413,6 +414,35 @@ class Ello(webapp2.RequestHandler):
         else:
             self.response.write("%i: %s" % (result.status_code,result.content))
 
+class JsonToXOXO(webapp2.RequestHandler):
+    def get(self):
+        url = fixurl(self.request.get('url'))
+        values={"url":url}
+        result = urlfetch.fetch(url)
+        if result.status_code == 200:
+            data= json.loads(result.content)
+            html= xoxo.toXOXO(data,True,'/styles/hfeed.css')
+        else:
+            html= "Error %i %s" % (result.status_code,result.content)
+        self.response.write(html)
+
+class XOXOToJson(webapp2.RequestHandler):
+    def get(self):
+        url = fixurl(self.request.get('url'))
+        prettyText = self.request.get('pretty','')
+        pretty = prettyText == 'on'
+        result = urlfetch.fetch(url)
+        if result.status_code == 200:
+            data= xoxo.fromXOXO(result.content)
+            if pretty:
+                xoxojson = json.dumps(data,indent=4, separators=(', ', ': '))
+            else:
+                xoxojson = json.dumps(data)
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.write(xoxojson)
+        else:
+            html= "Error %i %s" % (result.status_code,result.content)
+            self.response.write(html)
         
 application = webapp2.WSGIApplication([
     ('/', MainPage),
@@ -427,6 +457,8 @@ application = webapp2.WSGIApplication([
     ('/hovertest',HoverTest),
     ('/multitest',MultiTest),
     ('/refreshmf2cache/(.*)',RefreshMF2Cache),
+    ('/jsontoxoxo',JsonToXOXO),
+    ('/xoxotojson',XOXOToJson),
     
 
 ], debug=True)
