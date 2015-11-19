@@ -52,7 +52,7 @@ def makeXOXO(struct,className=None):
         s +=u"</ol>"
     elif isinstance(struct,dict):
         d=struct.copy()
-        if d.has_key('url') and not isinstance(d['url'],list):
+        if d.has_key('url') and d['url'] and not isinstance(d['url'],list):
             uURL=toUnicode(d['url'])
             s+=u'<a href="%s" ' % uURL
             text =  d.get('text',d.get('title',uURL))
@@ -160,7 +160,7 @@ class xoxoParser(AttrParser):
         AttrParser.setEncoding(self,encoding)
         self.attrparse.setEncoding(encoding)
     def pushStruct(self,struct):
-        if type(struct) == type({}) and len(struct)==0 and len(self.structs) and type(self.structs[-1]) == type({}) and self.structs[-1].has_key('url') and self.structs[-1] != self.xostack[-1]:
+        if type(struct) == type({}) and len(struct)==0 and len(self.structs) and type(self.structs[-1]) == type({}) and self.structs[-1].has_key('url') and len(self.xostack) and self.structs[-1] != self.xostack[-1]:
             self.xostack.append(self.structs[-1]) # put back the <a>-made one for extra def's
         else:
             self.structs.append(struct)
@@ -218,11 +218,14 @@ class xoxoParser(AttrParser):
     def start_dd(self,attrs):
         self.textstack.append('')
     def end_dd(self):
-        val = self.textstack.pop()
-        key = self.textstack.pop()
-        if self.structs[-1] != self.xostack[-1]:
-            val = self.structs.pop()
-        self.xostack[-1][key]=val
+        try:
+            val = self.textstack.pop()
+            key = self.textstack.pop()
+            if self.structs[-1] != self.xostack[-1]:
+                val = self.structs.pop()
+            self.xostack[-1][key]=val
+        except:
+            pass
     def handleUnicodeData(self, text):
         if len(self.stack) and containerTags.get(self.stack[-1],True): #skip text not within an element
             self.textstack[-1] += text
