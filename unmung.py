@@ -345,10 +345,11 @@ class HoverCard2(RequestHandlerWith304):
                         hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
             if hentries:
                 entries=[]
-                for entry in hentries[:2]:
+                for entry in hentries[:5]:
                     entries.append({"name":getTextOrValue(entry["properties"].get("name",[])),
                                     "summary": getTextOrHTML(entry["properties"].get("summary",[])),
-                                    "url":entry["properties"].get("url",[""])[0]})
+                                    "url":entry["properties"].get("url",[""])[0],
+                                    "featured":entry["properties"].get("featured",[""])[0]})
                 values["entries"] = entries
             if hcard:
                 values["name"] = getTextOrHTML(hcard["properties"].get("name",[]))
