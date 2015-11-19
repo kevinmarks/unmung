@@ -7,7 +7,7 @@
 <body>
 <div class="{{type}} indiecard">
 {% if banner %}
-<div class="u-banner">
+<div class="u-featured">
 <img src={{banner}} />
 </div>
 {% endif %}
@@ -31,6 +31,11 @@
 {% if entries %}
 {% for entry in entries %}
 <div class="h-entry"><a href="{{entry.url}}"><h3 class="e-name">{{entry.name}}</h3></a>
+{% if entry.featured %}
+<img class="u-featured" src="{{entry.featured}}" />
+{% elif  entry.photo %}
+<img class="u-photo" src="{{entry.photo}}" />
+{% endif %}
 <p class="e-summary">{{entry.summary}}</p>
 </div>
 {% endfor %}
