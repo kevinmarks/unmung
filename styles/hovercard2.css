@@ -20,9 +20,10 @@ a { text-decoration:none;}
 h2 { 
     font-weight: 300; margin:0; 
     font-size:6vw;
-    height:20vh; overflow:hidden;}
-.h-entry {height:20vh;margin-left: 10vw;}
+    }
+.h-entry {margin-left: 10vw;}
 h3 { 
     font-weight: 400; margin:0; 
     font-size:7vh;
-    height:15vh; overflow:hidden;}
+    }
+p { margin:0;}
