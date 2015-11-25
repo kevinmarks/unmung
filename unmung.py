@@ -345,7 +345,7 @@ class HoverCard2(RequestHandlerWith304):
                         hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
             if hentries:
                 entries=[]
-                for entry in hentries[:5]:
+                for entry in hentries[:3]:
                     entries.append({"name":getTextOrValue(entry["properties"].get("name",[])),
                                     "summary": getTextOrHTML(entry["properties"].get("summary",[])),
                                     "url":entry["properties"].get("url",[""])[0],
