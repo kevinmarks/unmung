@@ -11,6 +11,7 @@ import urlparse
 import hashlib
 import email.utils
 import xoxo
+import mf2tojf2
 
 import jinja2
 import webapp2
@@ -287,21 +288,53 @@ class RequestHandlerWith304(webapp2.RequestHandler):
     self.response.status_message = "Not Modified"
     self.response.status = "304 Not Modified"
 
+def mf2toHoverValues(mf2,url):
+    values= {"url": url,
+        "banner":"",
+        "photo":"",
+        "name":url,
+        "summary":"",
+        "entries":[],
+        }
+    hcard=None
+    hfeed=None
+    hentries=[]
+    if mf2:
+        for item in mf2["items"]:
+            hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
+            for subitem in item.get("children",[]):
+                hcard,hfeed,hentries = findCardFeedEntries(subitem,hcard,hfeed,hentries)
+        if hfeed:
+            if hfeed["properties"].get("summary"):
+               values["summary"] = getTextOrHTML(hfeed["properties"].get("summary"))
+            if not hentries:
+                for item in hfeed.get("children",[]):
+                    hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
+        if hentries:
+            entries=[]
+            for entry in hentries[:3]:
+                entries.append({"name":getTextOrValue(entry["properties"].get("name",[])),
+                                "summary": getTextOrHTML(entry["properties"].get("summary",[])),
+                                "url":entry["properties"].get("url",[""])[0],
+                                "featured":entry["properties"].get("featured",[""])[0]})
+            values["entries"] = entries
+        if hcard:
+            values["name"] = getTextOrHTML(hcard["properties"].get("name",[]))
+            if hcard["properties"].get("photo"):
+                values["photo"] = hcard["properties"].get("photo")[0]
+            if  hcard["properties"].get("note"):
+                values["summary"] = getTextOrHTML(hcard["properties"].get("note"))
+            if  hcard["properties"].get("summary"):
+                values["summary"] = getTextOrHTML(hcard["properties"].get("summary"))
+            if  hcard["properties"].get("org"):
+                values["org"] = getTextOrHcard(hcard["properties"].get("org"))
+        return values
+
 class HoverCard2(RequestHandlerWith304):
     #like indiecard but to be iframed
     def get(self):
         url = fixurl(self.request.get('url'))
-        values= {"url": url,
-            "banner":"",
-            "photo":"",
-            "name":url,
-            "summary":"",
-            "entries":[],
-            }
         mf2 = mf2parseWithCaching(url)
-        hcard=None
-        hfeed=None
-        hentries=[]
         seenbefore = memcache.get(url,namespace="seenbefore")
         if not seenbefore:
             etag = hashlib.md5(json.dumps(mf2)).hexdigest()
@@ -332,35 +365,7 @@ class HoverCard2(RequestHandlerWith304):
 
         self.response.headers["Etag"] = seenbefore.get("etag")
         self.response.headers["Last-Modified"] = self.time_to_rfc1123(seenbefore.get("last_modified") or datetime.datetime.now())
-        if mf2:
-            for item in mf2["items"]:
-                hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
-                for subitem in item.get("children",[]):
-                    hcard,hfeed,hentries = findCardFeedEntries(subitem,hcard,hfeed,hentries)
-            if hfeed:
-                if hfeed["properties"].get("summary"):
-                   values["summary"] = getTextOrHTML(hfeed["properties"].get("summary"))
-                if not hentries:
-                    for item in hfeed.get("children",[]):
-                        hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
-            if hentries:
-                entries=[]
-                for entry in hentries[:3]:
-                    entries.append({"name":getTextOrValue(entry["properties"].get("name",[])),
-                                    "summary": getTextOrHTML(entry["properties"].get("summary",[])),
-                                    "url":entry["properties"].get("url",[""])[0],
-                                    "featured":entry["properties"].get("featured",[""])[0]})
-                values["entries"] = entries
-            if hcard:
-                values["name"] = getTextOrHTML(hcard["properties"].get("name",[]))
-                if hcard["properties"].get("photo"):
-                    values["photo"] = hcard["properties"].get("photo")[0]
-                if  hcard["properties"].get("note"):
-                    values["summary"] = getTextOrHTML(hcard["properties"].get("note"))
-                if  hcard["properties"].get("summary"):
-                    values["summary"] = getTextOrHTML(hcard["properties"].get("summary"))
-                if  hcard["properties"].get("org"):
-                    values["org"] = getTextOrHcard(hcard["properties"].get("org"))
+        values = mf2toHoverValues(mf2,url)
         if values["name"] == url and values["entries"]==[]: # need to make this gentler for noterlive
             template = JINJA_ENVIRONMENT.get_template('shrunkensite.html')
         else:
@@ -388,6 +393,22 @@ class Microformats(webapp2.RequestHandler):
             #mf2json = mf2py.Parser(doc=urllib2.urlopen(url), url=url).to_json(pretty)
             self.response.headers['Content-Type'] = 'application/json'
             self.response.write(mf2json)
+
+class MicroformatsToJs2(webapp2.RequestHandler):
+    def get(self):
+        url = fixurl(self.request.get('url'))
+        prettyText = self.request.get('pretty','')
+        pretty = prettyText == 'on'
+        result = urlfetch.fetch(url)
+        if result.status_code == 200:
+            data= json.loads(result.content)
+            jf2 = mf2tojf2.mf2tojf2(data)
+            if pretty:
+                jf2json = json.dumps(jf2,indent=4, separators=(', ', ': '))
+            else:
+                jf2json = json.dumps(jf2)
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.write(jf2json)
 
 class Autolink(webapp2.RequestHandler):
     def get(self):
@@ -444,7 +465,34 @@ class XOXOToJson(webapp2.RequestHandler):
         else:
             html= "Error %i %s" % (result.status_code,result.content)
             self.response.write(html)
-        
+            
+class Oembed(webapp2.RequestHandler):
+    def get(self):
+        url = fixurl(self.request.get('url'))
+        maxwidth = int(self.request.get('maxwidth','320'))
+        maxheight = int(self.request.get('maxheight','240'))
+        format = self.request.get('format','rich')
+        mf2 = mf2parseWithCaching(url)
+        values = mf2toHoverValues(mf2,url)
+        if values["name"] == url and values["entries"]==[]:
+            template = JINJA_ENVIRONMENT.get_template('shrunkeninline.html')
+        else:
+            template = JINJA_ENVIRONMENT.get_template('oembedcard.html')
+        output = {
+                "version": "1.0",
+                "type": format,
+                "provider_name": "Indieweb",
+                "provider_url": "http://indiewebcamp.com/",
+                "width": maxwidth,
+                "height": maxheight,
+                "title": values.get("summary",values.get("name")),
+                "author_name": values.get("name"),
+                "author_url": url,
+                "html":template.render(values),
+            }
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.write(json.dumps(output))
+
 application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/feed',Feed),
@@ -460,6 +508,8 @@ application = webapp2.WSGIApplication([
     ('/refreshmf2cache/(.*)',RefreshMF2Cache),
     ('/jsontoxoxo',JsonToXOXO),
     ('/xoxotojson',XOXOToJson),
-    
+    ('/oembed',Oembed),
+    ('/mf2tojs2',MicroformatsToJs2),
+
 
 ], debug=True)

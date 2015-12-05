@@ -3,9 +3,9 @@ body {margin:0; font-family: "Gill Sans", Roboto,Verdana, sans-serif;}
             -webkit-justify-content: space-around; justify-content: space-around; 
             font-size:.75em;
             }
-img {width: 220px; object-fit: cover;}
+img {width: 220px; object-fit: cover; max-height:220px;}
 li {list-style:none;}
-.card {width:240px; border:10px;}
+.card {width:240px; border:10px; max-height:360px; overflow:hidden; text-overflow: ellipsis;}
 a { text-decoration:none;}
 h3 { 
     font-weight: 400; 
