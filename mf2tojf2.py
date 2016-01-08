@@ -15,7 +15,7 @@ def flattenProperties(items):
             item = items[0]    
             if type(item) is dict:
                 if item.has_key("type"):
-                    props ={"type":item.get("type",["-"])[0].split("-")[1:][0]}
+                    props ={"type":'-'.join(item.get("type",["-"])[0].split("-")[1:])}
                     properties =  item.get("properties",{})
                     for prop in properties:
                         props[prop] = flattenProperties(properties[prop])
