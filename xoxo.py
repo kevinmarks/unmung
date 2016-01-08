@@ -52,7 +52,7 @@ def makeXOXO(struct,className=None):
         s +=u"</ol>"
     elif isinstance(struct,dict):
         d=struct.copy()
-        if d.has_key('url') and d['url'] and not isinstance(d['url'],list):
+        if d.has_key('url') and d['url'] and not isinstance(d['url'],list) and not isinstance(d['url'],dict):
             uURL=toUnicode(d['url'])
             s+=u'<a href="%s" ' % uURL
             text =  d.get('text',d.get('title',uURL))
