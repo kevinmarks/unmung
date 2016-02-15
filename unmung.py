@@ -218,7 +218,7 @@ class HoverCard(webapp2.RequestHandler):
 def findCardFeedEntries(item,hcard,hfeed,hentries):
     if not hcard and item["type"][0].startswith('h-card'):
         hcard = item
-    if not hcard and "author" in item["properties"] and item["properties"]["author"][0]["type"][0].startswith('h-card'):
+    if not hcard and "author" in item["properties"] and type(item["properties"]["author"][0]) is dict and item["properties"]["author"][0]["type"][0].startswith('h-card'):
         hcard= item["properties"]["author"][0]
     if not hfeed and item["type"][0].startswith('h-feed'):
         hfeed=item
