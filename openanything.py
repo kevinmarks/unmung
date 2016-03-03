@@ -99,7 +99,7 @@ def fetch(source, etag=None, lastmodified=None, agent=USER_AGENT):
             # data came back gzip-compressed, decompress it
             result['data'] = gzip.GzipFile(fileobj=StringIO(result['data'])).read()
     if hasattr(f, 'url'):
-        result['url'] = f.url
+        result['url'] = f.geturl()
         result['status'] = 200
     if hasattr(f, 'status'):
         result['status'] = f.status

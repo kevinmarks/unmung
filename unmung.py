@@ -59,6 +59,7 @@ def mf2parseWithCaching(url,fetch=False):
         if not reuse:
             try:
                 params = openanything.fetch(url, etag, lastmod, useragent)
+                logging.info("mf2parseWithCaching: openanything url='%s' params['url']= '%s' " % (url,params.get('url','')))
             except Exception,e:
                 logging.info("mf2parseWithCaching: openanything '%s' fail '%s' " % (params,e))
         else:
@@ -74,7 +75,7 @@ def mf2parseWithCaching(url,fetch=False):
         taskqueue.add(url=taskurl)
     if mf2 is None and params:
         logging.info("mf2parseWithCaching: - parsing '%s'"  % (url))
-        mf2 = mf2py.Parser(params.get('data',''), url=url).to_dict()
+        mf2 = mf2py.Parser(params.get('data',''), url=params.get('url',url)).to_dict()
         memcache.set(url,mf2,namespace='mf2')
         etag = params.get('etag')
         memcache.set(url,etag,namespace='ETag')
