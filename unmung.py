@@ -104,7 +104,12 @@ class MainPage(webapp2.RequestHandler):
         embedit = embed == 'on'
         values ={"rawhtml": html, "mfjson":"","rawtext":rawtext,"linkedhtml":""}
         if html:
-            mf2json = mf2py.Parser(doc=html).to_json(pretty)
+            mf2dict = mf2py.Parser(doc=html).to_dict()
+            if pretty:
+                mf2json = json.dumps(mf2dict, indent=4,
+                                  separators=(', ', ': '),ensure_ascii=False)
+            else:
+                mf2json = json.dumps(mf2dict,ensure_ascii=False)
             values["mfjson"] = mf2json
         if rawtext:
             linkedhtml = cassis.auto_link(rawtext,do_embed=embedit,maxUrlLength=int(maxUrlLength))
