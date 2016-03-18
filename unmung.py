@@ -384,7 +384,7 @@ class Microformats(webapp2.RequestHandler):
         prettyText = self.request.get('pretty','')
         pretty = prettyText == 'on'
         if html:
-            self.redirect("/?"+urllib.urlencode({'html':html,'pretty':prettyText}))
+            self.redirect("/?"+urllib.urlencode({'html':html.encode("utf8"),'pretty':prettyText}))
         elif url:
             mf2 = mf2parseWithCaching(url)
             if pretty:
