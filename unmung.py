@@ -178,6 +178,43 @@ class StoryCard(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('storycard.html')
         self.response.write(template.render(values))
 
+class SparkLine(webapp2.RequestHandler):
+    def get(self):
+        url = fixurl(self.request.get('url'))
+        values={"url":url,"entries":[],}
+        mf2 = mf2parseWithCaching(url)
+        hcard=None
+        hfeed=None
+        hentries=[]
+        if mf2:
+            for item in mf2["items"]:
+                hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
+                for subitem in item.get("children",[]):
+                    hcard,hfeed,hentries = findCardFeedEntries(subitem,hcard,hfeed,hentries)
+            if hfeed:
+                if hfeed["properties"].get("summary"):
+                   values["summary"] = getTextOrHTML(hfeed["properties"].get("summary"))
+                if not hentries:
+                    for item in hfeed.get("children",[]):
+                        hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
+            if hentries:
+                datecount={}
+                for entry in hentries:
+                    date= entry["properties"].get("published",[""])[0][:7]
+                    if len(date)>4:
+                        ym = int(date[0:4])*12 +int(date[5:7])
+                        datecount[ym]=datecount.get(ym,0)+1
+                l = ["%s %s" %(d,c) for d,c in datecount.items()]
+                l.sort()
+                min = int(l[0].split()[0])
+                max = int(l[-1].split()[0])
+                l2=[]
+                for i in range(min,max+1):
+                    l2.append(datecount.get(i,0))
+                values["entries"] = l2
+        template = JINJA_ENVIRONMENT.get_template('sparkline.html')
+        self.response.write(template.render(values))
+
 
 class MultiTest(webapp2.RequestHandler):
     def get(self):
@@ -504,6 +541,7 @@ application = webapp2.WSGIApplication([
     ('/feed',Feed),
     ('/indiecard',IndieCard),
     ('/storycard',StoryCard),
+    ('/sparkline',SparkLine),
     ('/hovercard',HoverCard2),
     ('/ello',Ello),
     ('/mf2',Microformats),

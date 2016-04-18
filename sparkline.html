@@ -1,0 +1,10 @@
+<html>
+<head><title>{{name}}</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<embed src="http://kevinmarks.com/sparkline.svg?{% for entry in entries %}{{entry}},{% endfor %}" width=200 height=15 >
+
+</body>
+</html>
