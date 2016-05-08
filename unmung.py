@@ -12,6 +12,7 @@ import hashlib
 import email.utils
 import xoxo
 import mf2tojf2
+import dateutil.parser
 
 import jinja2
 import webapp2
@@ -417,6 +418,52 @@ class HoverCard2(RequestHandlerWith304):
         logging.info(self.response.headers)
         self.response.write(template.render(values))
 
+class JoyGraph(webapp2.RequestHandler):
+    #joy division style posting graph
+    def get(self):
+        url = fixurl(self.request.get('url'))
+        urldate= dateutil.parser.parse(url.split('/')[-1])
+        logging.info(urldate)
+        lines=[]
+        offset=0
+        for i in range(0,90):
+            urldate = urldate+dateutil.relativedelta.relativedelta(days=-1)
+            logging.info(urldate)
+            newurl = '/'.join(url.split('/')[:-1]+[urldate.strftime("%Y-%m-%d")])
+            logging.info(newurl)
+            mf2 = mf2parseWithCaching(newurl)
+            hcard=None
+            hfeed=None
+            hentries=[]
+            times=[0]*96
+            if mf2:
+                for item in mf2["items"]:
+                    hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
+                    for subitem in item.get("children",[]):
+                        hcard,hfeed,hentries = findCardFeedEntries(subitem,hcard,hfeed,hentries)
+                if hfeed:
+                    if hfeed["properties"].get("summary"):
+                       values["summary"] = getTextOrHTML(hfeed["properties"].get("summary"))
+                    if not hentries:
+                        for item in hfeed.get("children",[]):
+                            hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
+                if hentries:
+                    for entry in hentries:
+                        pubtime = entry["properties"].get("published")
+                        if pubtime:
+                            dt =dateutil.parser.parse(pubtime[0]).astimezone(dateutil.tz.tzoffset(None, -25200))
+                            bin = dt.hour*4+dt.minute/15
+                            times[bin]=times[bin]+1
+            line = [(0,0)] + zip(range(0,96*5,5),times) + [(96*5,0)]
+            points = " ".join(["%s,%s" % p for p in line])
+            if offset==0:
+                offset=max(times)+10
+            lines.append({"points":points, "down":offset})
+            offset = offset+10
+        
+        template = JINJA_ENVIRONMENT.get_template('joyline.svg')
+        values={"lines":lines, "max":offset}
+        self.response.write(template.render(values))
 
 
 class Microformats(webapp2.RequestHandler):
@@ -554,6 +601,7 @@ application = webapp2.WSGIApplication([
     ('/xoxotojson',XOXOToJson),
     ('/oembed',Oembed),
     ('/mf2tojs2',MicroformatsToJs2),
+    ('/joygraph',JoyGraph),
 
 
 ], debug=True)
