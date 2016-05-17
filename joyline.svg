@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" version="1.1" baseProfile="full" width="480" height="{{max}}"  viewBox="0 0 480 {{max}}" >
-<style>svg {background-color: black;}</style>
+<style>svg {background-color: black;} polyline {stroke-linejoin:round; stroke:white; stroke-width:3; fill:black;}</style>
 {% for line in lines %}
-<polyline stroke="white" stroke-width="3" fill="black" transform="matrix(1 0 0 -1 0 {{line.down}})" points="{{line.points}}"/>
+<polyline transform="matrix(1 0 0 -1 0 {{line.down}})" points="{{line.points}}"/>
 {% endfor %}
 </svg>
