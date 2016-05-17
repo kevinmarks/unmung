@@ -94,7 +94,7 @@ CLASSIC_PROPERTY_MAP = {
         'recipe-method__list-item-text': ['p-instructions'],
         'recipe-metadata__prep-time': ['p-duration'],
         'nutrition': ['p-nutrition'],
-        'recipe-media__image responsive-images': ['u-photo'],
+        'recipe-media__image': ['u-photo'],
         'recipe-description__text': ['p-summary'],
         'recipe-ingredients__link':['p-category'],
         'chef': ['p-author', 'h-card'],
