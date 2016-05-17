@@ -97,6 +97,7 @@ CLASSIC_PROPERTY_MAP = {
         'recipe-media__image': ['u-photo'],
         'recipe-description__text': ['p-summary'],
         'recipe-ingredients__link':['p-category'],
+        'recipe-tips__text':['e-note'],
         'chef': ['p-author', 'h-card'],
         'chef__image': ['u-photo'],
         'chef__link': ['p-name'],
