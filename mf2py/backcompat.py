@@ -26,6 +26,7 @@ CLASSIC_ROOT_MAP = {
     'hreview-aggregate': 'h-review-aggregate',
     'geo': 'h-geo',
     'adr': 'h-adr',
+    'recipe-main-info':'h-recipe',
 }
 
 CLASSIC_PROPERTY_MAP = {
@@ -85,6 +86,20 @@ CLASSIC_PROPERTY_MAP = {
         'photo': ['u-photo'],
         'summary': ['p-summary'],
         'author': ['p-author', 'h-card'],
+    },
+    'recipe-main-info': {
+        'content-title__text': ['p-name'],
+        'recipe-ingredients__list-item': ['p-ingredient'],
+        'recipe-metadata__serving': ['p-yield'],
+        'recipe-method-wrapper': ['e-instructions'],
+        'recipe-metadata__prep-time': ['p-duration'],
+        'nutrition': ['p-nutrition'],
+        'recipe-media__image responsive-images': ['u-photo'],
+        'recipe-description__text': ['p-summary'],
+        'recipe-ingredients__link':['p-category'],
+        'chef': ['p-author', 'h-card'],
+        'chef__image': ['u-photo'],
+        'chef__link': ['p-name'],
     },
     'hresume': {
         'summary': ['p-summary'],
