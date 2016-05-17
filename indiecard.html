@@ -20,9 +20,25 @@
 <a class="figure" href="{{url}}"><img src="{{item.properties.featured[0]}}" class="u-featured" /></a>
 {% endif %}
 <a class="u-url p-name"" href="{{url}}">{{" ".join(item.properties.name)}}</a></h1>
+{% if item.properties.author %}
+<h3 class="p-author h-card">{% if item.properties.author[0].properties.photo %}<img src="{{item.properties.author[0].properties.photo[0]}}" class="u-photo" />{% endif %}{% if item.properties.author[0].properties.url %}<a class="u-url p-name"" href="{{item.properties.author[0].properties.url[0]}}">{{item.properties.author[0].properties.name[0]}}</a>{% else %}{{item.properties.author[0].properties.name[0]}}{% endif %}</h3>
+{% endif %}
 {% if item.properties.summary %}
 <h2 class="p-summary">{{" ".join(item.properties.summary)}}</h2>
-{% elif item.properties.note %}
+{% endif %}
+{% if item.properties.ingredient %}
+<h3>Ingredients</h3>
+<ul>
+{% for food in item.properties.ingredient %}<li>{{food}}{% endfor %}
+</ul>
+{% endif %}
+{% if item.properties.instructions %}
+<h3>Method</h3>
+<ol>
+{% for stage in item.properties.instructions %}<li>{{stage}}{% endfor %}
+</ol>
+{% endif %}
+{% if item.properties.note %}
 {% if item.properties.note[0].html %}
 {% autoescape false %}
 <h2 class="e-note">{{item.properties.note[0].html}}</h2>
