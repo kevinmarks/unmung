@@ -29,13 +29,13 @@
 {% if item.properties.ingredient %}
 <h3>Ingredients</h3>
 <ul>
-{% for food in item.properties.ingredient %}<li>{{food}}{% endfor %}
+{% for food in item.properties.ingredient %}<li class="p-ingredient">{{food}}{% endfor %}
 </ul>
 {% endif %}
 {% if item.properties.instructions %}
 <h3>Method</h3>
 <ol>
-{% for stage in item.properties.instructions %}<li>{{stage}}{% endfor %}
+{% for stage in item.properties.instructions %}<li class="p-instructions">{{stage}}{% endfor %}
 </ol>
 {% endif %}
 {% if item.properties.note %}
