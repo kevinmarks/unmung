@@ -1,0 +1,27 @@
+<html>
+<head><title>{{name}}</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {margin:0; font-size:1.5em; font-family: "Gill Sans", Roboto,Verdana, sans-serif;}
+.markup {font-family:monospace; color:gray; font-size:1rem;}
+.humans {font-size:2em; color:black; font-weight:bold;}
+img {height:8em;}
+.sidebyside {display:flex; justify-content:space-around;align-items:center;}
+</style>
+</head>
+<body>
+<div class="markup">
+&lt;div class=h-card &gt;&lt;a class=u-url rel=me
+<br>href=<span class="humans">{{url}}</span> &gt;
+</div>
+<div class="sidebyside">
+<div class="markup"><br>&lt;img class=u-photo src=
+<br><img src="{{photo}}" />/&gt;</div>
+<div><span class="humans">{{name}}</span></div>
+</div>
+<div class="markup">
+&lt;/a&gt;&lt/div&gt;
+</div>
+</body>
+</html>

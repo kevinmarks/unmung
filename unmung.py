@@ -378,6 +378,7 @@ class HoverCard2(RequestHandlerWith304):
     #like indiecard but to be iframed
     def get(self):
         url = fixurl(self.request.get('url'))
+        template = self.request.get('template','hovercard2')
         mf2 = mf2parseWithCaching(url)
         seenbefore = memcache.get(url,namespace="seenbefore")
         if not seenbefore:
@@ -413,7 +414,7 @@ class HoverCard2(RequestHandlerWith304):
         if values["name"] == url and values["entries"]==[]: # need to make this gentler for noterlive
             template = JINJA_ENVIRONMENT.get_template('shrunkensite.html')
         else:
-            template = JINJA_ENVIRONMENT.get_template('hovercard2.html')
+            template = JINJA_ENVIRONMENT.get_template(template +'.html')
         self.response.headers["Cache-Control"] = "public, max-age=600"
         logging.info(self.response.headers)
         self.response.write(template.render(values))
