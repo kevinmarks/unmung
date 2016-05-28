@@ -19,7 +19,7 @@ a { text-decoration:none;}
 .p-name {-webkit-flex-grow:4; flex-grow:4; } 
 h2 { 
     font-weight: 300; margin:0; 
-    font-size:6vw;
+    font-size:4vh;
     }
 .h-entry {margin-left: 10vw; margin-bottom:4vh;}
 h3 { 
