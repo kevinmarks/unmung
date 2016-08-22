@@ -143,6 +143,10 @@ class IndieCard(webapp2.RequestHandler):
         for item in mf2["items"]:
             if not item["type"][0].startswith('h-x-'):
                 values["item"]= item
+                for child in item.get("children",[]):
+                    if "h-recipe" in child.get("type",[]):
+                        values["item"]= child
+                        break
                 break
         template = JINJA_ENVIRONMENT.get_template('indiecard.html')
         self.response.write(template.render(values))

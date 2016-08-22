@@ -35,7 +35,9 @@
 {% if item.properties.instructions %}
 <h3>Method</h3>
 <ol>
-{% for stage in item.properties.instructions %}<li class="p-instructions">{{stage}}{% endfor %}
+{% autoescape false %}
+{% for stage in item.properties.instructions %}<li class="p-instructions">{{stage["html"] or stage}}{% endfor %}
+{% endautoescape %}
 </ol>
 {% endif %}
 {% if item.properties.note %}
