@@ -17,7 +17,7 @@
 </p>
 {% endif %}
 {% for entry in entries %}
-<details class="h-entry">
+<details class="h-entry" {% if entry.link == entries[0].link %}open{% endif %}>
 <summary class="p-name"><a class="u-url" href="{{entry.link}}">{% autoescape false %}{{entry.title}}{% endautoescape %}</a></summary>
 <div class="e-content">
 {% if entry.summary and entry.content %}
