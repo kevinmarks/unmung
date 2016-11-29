@@ -16,3 +16,6 @@ blockquote.auto-mention a {text-decoration:none; color:black;}
 .indiecard {border: 1px solid lightgray; border-radius: 4px; max-width: 25em; padding: .9em; }
 .indiecard.figure {float:left; width 50%;}
 
+details summary::-webkit-details-marker {
+  font-size: 40px;
+}
