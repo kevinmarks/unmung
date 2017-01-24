@@ -40,11 +40,17 @@
 {% endif %}
 {% if item.properties.instructions %}
 <h3>Method</h3>
+{% if item.properties.instructions|length ==1 %}
+{% autoescape false %}
+<p class="p-instructions">{{item.properties.instructions[0]["html"] or item.properties.instructions[0]}}</p>
+{% endautoescape %}
+{% else %}
 <ol>
 {% autoescape false %}
 {% for stage in item.properties.instructions %}<li class="p-instructions">{{stage["html"] or stage}}{% endfor %}
 {% endautoescape %}
 </ol>
+{% endif %}
 {% endif %}
 {% if item.properties.note %}
 {% if item.properties.note[0].html %}
