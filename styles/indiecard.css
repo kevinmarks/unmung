@@ -1,13 +1,13 @@
 
 * { font-family: 'Gill Sans','Roboto', sans-serif; line-height:1.2; vertical-align:middle; }
 
-body { background:#222;  }
+body { background:#222; display:flex; max-width:inherit; flex-direction: column;}
 
 
-main {
-  display:block;
-  position:relative;
-  width:30rem;
+main,footer {
+  display:flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
   margin:3vh auto;
   padding:1.5rem 0 0;
   background:#d5d5d5;
@@ -16,9 +16,7 @@ main {
   overflow:hidden;
 }
 header {
-  position:absolute;
   z-index:0;
-  top:0; left:0; right:0;
   height:10rem;
   transition:transform .5s, opacity .3s;
   background:url(/static/landscape.jpg)  center center;
@@ -55,6 +53,8 @@ input:focus + header {
   padding:1.5rem;
   box-shadow:0 1px 2px #aaa;
   background:white;
+  width:100%;
+  max-width:20em;
   margin:0 1rem 1rem;
   border-radius:3px;
   user-select:none;

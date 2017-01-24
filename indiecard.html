@@ -1,5 +1,5 @@
 <html>
-<head><title>{{" ".join(item.properties.name)}}</title>
+<head><title>{% if item %}{{" ".join(item.properties.name)}}{% else %}Indiecard{% endif %}</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="styles/hfeed.css" media="all" rel="stylesheet" type="text/css" />
@@ -7,12 +7,13 @@
 <script src="static/fragmention.js"></script>
 </head>
 <body>
-<main>
-    <form action="/indiecard" method="get">
+<header>
+      <form action="/indiecard" method="get">
       <input name="url" type="url" placeholder="get card for url" />
       <input type="submit" value="show indiecard" class="hidden"/>
     </form>
-<header></header>
+</header>
+<main>
 {% for item in items %}
 <div class="{{item.type[0]}} indiecard">
 <h1 >{% if item.properties.photo %}
@@ -56,6 +57,9 @@
 {% endif %}
 </div>
 {% endfor %}
-<details><summary>raw</summary><code>{{item}}</code></details>
+</main>
+<footer>
+{%if items %}<details><summary>raw</summary><code>{{items}}</code></details>{% endif %}
+</footer>
 </body>
 </html>
