@@ -140,6 +140,7 @@ class IndieCard(webapp2.RequestHandler):
         url = fixurl(self.request.get('url'))
         values={"url":url}
         mf2 = mf2parseWithCaching(url)
+        values["items"] = mf2["items"]
         for item in mf2["items"]:
             if not item["type"][0].startswith('h-x-'):
                 values["item"]= item
@@ -181,6 +182,40 @@ class StoryCard(webapp2.RequestHandler):
                                     "featured":entry["properties"].get("featured",[""])[0]})
                 values["entries"] = entries
         template = JINJA_ENVIRONMENT.get_template('storycard.html')
+        self.response.write(template.render(values))
+
+class VRCard(webapp2.RequestHandler):
+    def get(self):
+        url = fixurl(self.request.get('url'))
+        values={"url":url,"entries":[],}
+        mf2 = mf2parseWithCaching(url)
+        hcard=None
+        hfeed=None
+        hentries=[]
+        if mf2:
+            for item in mf2["items"]:
+                hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
+                for subitem in item.get("children",[]):
+                    hcard,hfeed,hentries = findCardFeedEntries(subitem,hcard,hfeed,hentries)
+            if hfeed:
+                if hfeed["properties"].get("summary"):
+                   values["summary"] = getTextOrHTML(hfeed["properties"].get("summary"))
+                if not hentries:
+                    for item in hfeed.get("children",[]):
+                        hcard,hfeed,hentries = findCardFeedEntries(item,hcard,hfeed,hentries)
+            if hentries:
+                entries=[]
+                idnum=0
+                for entry in hentries:
+                    entries.append({"id":"id%s" %(idnum),"name":getTextOrValue(entry["properties"].get("name",[])),
+                                    "summary": getTextOrHTML(entry["properties"].get("summary",[])),
+                                    "url":entry["properties"].get("url",[""])[0],
+                                    "published":entry["properties"].get("published",[""])[0],
+                                    "photo":entry["properties"].get("photo",[""])[0],
+                                    "featured":entry["properties"].get("featured",[""])[0]})
+                values["entries"] = entries
+                idnum=idnum+1
+        template = JINJA_ENVIRONMENT.get_template('vrcard.html')
         self.response.write(template.render(values))
 
 class SparkLine(webapp2.RequestHandler):
@@ -593,6 +628,7 @@ application = webapp2.WSGIApplication([
     ('/feed',Feed),
     ('/indiecard',IndieCard),
     ('/storycard',StoryCard),
+    ('/vrcard',VRCard),
     ('/sparkline',SparkLine),
     ('/hovercard',HoverCard2),
     ('/ello',Ello),

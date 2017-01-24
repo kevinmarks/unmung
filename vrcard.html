@@ -1,0 +1,44 @@
+<html>
+<head><title>{{name}}</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="styles/storycard.css" media="all" rel="stylesheet" type="text/css" />
+    <script src="https://aframe.io/releases/0.3.0/aframe.min.js"></script>
+</head>
+<body>
+<a-scene>
+{% if entries %}
+<a-assets>
+{% for entry in entries %}
+{% if entry.featured %}
+<img id="{{entry.id}}" src="{{entry.featured}}">
+{% elif  entry.photo %}
+<img id="{{entry.id}}" src="{{entry.photo}}">
+{% endif %}
+
+{% endfor %}
+</a-assets>
+<ul class="storycards">
+{% for entry in entries %}
+<li class="card"><div class="h-entry"><a href="{{entry.url}}">
+{% if entry.featured %}
+<a-curvedimage src="#{{entry.id}}" radius="5.7" theta-length="180" height="9"
+             rotation="0 90 0" scale="1.2 1.2 1.2"></a-curvedimage>
+{% elif  entry.photo %}
+<a-curvedimage src="#{{entry.id}}" radius="5.7" theta-length="180" height="9"
+             rotation="0 90 0" scale="1.2 1.2 1.2"></a-curvedimage>
+{% endif %}
+<h3 class="p-name">{{entry.name}}</h3></a>
+<p class="p-summary">{{entry.summary}}</p>
+<time class="dt-published" datetime={{entry.published}}></time>
+</div>
+{% endfor %}
+{% endif %}
+</ul>
+      <a-sky color="#fff"></a-sky>
+      <a-entity position="0 0 1.5">
+        <a-camera></a-camera>
+      </a-entity>
+    </a-scene>
+</body>
+</html>

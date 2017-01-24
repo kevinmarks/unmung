@@ -13,6 +13,7 @@
       <input type="submit" value="show indiecard" class="hidden"/>
     </form>
 <header></header>
+{% for item in items %}
 <div class="{{item.type[0]}} indiecard">
 <h1 >{% if item.properties.photo %}
 <a class="figure" href="{{url}}"><img src="{{item.properties.photo[0]}}" class="u-photo" /></a>
@@ -21,7 +22,11 @@
 {% endif %}
 <a class="u-url p-name"" href="{{url}}">{{" ".join(item.properties.name)}}</a></h1>
 {% if item.properties.author %}
-<h3 class="p-author h-card">{% if item.properties.author[0].properties.photo %}<img src="{{item.properties.author[0].properties.photo[0]}}" class="u-photo" />{% endif %}{% if item.properties.author[0].properties.url %}<a class="u-url p-name"" href="{{item.properties.author[0].properties.url[0]}}">{{item.properties.author[0].properties.name[0]}}</a>{% else %}{{item.properties.author[0].properties.name[0]}}{% endif %}</h3>
+    {% if item.properties.author[0].properties %}
+    <h3 class="p-author h-card">{% if item.properties.author[0].properties.photo %}<img src="{{item.properties.author[0].properties.photo[0]}}" class="u-photo" />{% endif %}{% if item.properties.author[0].properties.url %}<a class="u-url p-name"" href="{{item.properties.author[0].properties.url[0]}}">{{item.properties.author[0].properties.name[0]}}</a>{% else %}{{item.properties.author[0].properties.name[0]}}{% endif %}</h3>
+    {% else %}
+    <h3 class="p-author">{{item.properties.author[0]}}</h3>
+    {% endif %}
 {% endif %}
 {% if item.properties.summary %}
 <h2 class="p-summary">{{" ".join(item.properties.summary)}}</h2>
@@ -50,6 +55,7 @@
 {% endif %}
 {% endif %}
 </div>
+{% endfor %}
 <details><summary>raw</summary><code>{{item}}</code></details>
 </body>
 </html>
