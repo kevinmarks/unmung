@@ -399,7 +399,8 @@ def mf2toHoverValues(mf2,url):
                 entries.append({"name":getTextOrValue(entry["properties"].get("name",[])),
                                 "summary": getTextOrHTML(entry["properties"].get("summary",[])),
                                 "url":entry["properties"].get("url",[""])[0],
-                                "featured":entry["properties"].get("featured",[""])[0]})
+                                #"featured":entry["properties"].get("featured",[""])[0],
+                                })
             values["entries"] = entries
         if hcard:
             values["name"] = getTextOrHTML(hcard["properties"].get("name",[]))

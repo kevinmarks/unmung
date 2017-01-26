@@ -29,16 +29,20 @@
 {% endif %}
 
 {% if entries %}
+<div class="h-feed">
 {% for entry in entries %}
 <div class="h-entry"><a href="{{entry.url}}"><h3 class="e-name">{{entry.name}}</h3></a>
 {% if entry.featured %}
-<img class="u-featured" src="{{entry.featured}}" />
+<div class="u-featured">
+<img  src="{{entry.featured}}" />
+</div>
 {% elif  entry.photo %}
-<img class="u-photo" src="{{entry.photo}}" />
+<div class="figure"><img class="u-photo" src="{{entry.photo}}" /></div>
 {% endif %}
 <p class="e-summary">{{entry.summary}}</p>
 </div>
 {% endfor %}
+</div>
 {% endif %}
 </div>
 </body>

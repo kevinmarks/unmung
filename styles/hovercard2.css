@@ -14,6 +14,8 @@ h1 {display: -webkit-flex; display:flex;
 text {font-size:20vh;}
 a { text-decoration:none;}
 .figure {-webkit-flex-grow:1; flex-grow:1;  max-width:20%; height:100%;}
+.u-featured {height:3em; float:left;}
+.u-featured img {width:100%; height:100%; object-fit: cover;}
 .u-photo {width:100%; max-height:100%; object-fit: contain;
         }
 .p-name {-webkit-flex-grow:4; flex-grow:4; } 
@@ -21,7 +23,7 @@ h2 {
     font-weight: 300; margin:0; 
     font-size:4vh;
     }
-.h-entry {margin-left: 10vw; margin-bottom:4vh;}
+.h-entry {margin-left: 10vw; margin-bottom:4vh; max-height:20vh}
 h3 { 
     font-weight: 400; margin:0; 
     font-size:7vh;
