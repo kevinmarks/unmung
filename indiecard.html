@@ -15,39 +15,39 @@
 </header>
 <main>
 {% for item in items %}
-<div class="{{item.type[0]}} indiecard">
+<div class="{{item.type[0]}} {% if item.type[0]=='h-recipe' %}hrecipe {% endif %}indiecard">
 <h1 >{% if item.properties.photo %}
-<a class="figure" href="{{url}}"><img src="{{item.properties.photo[0]}}" class="u-photo" /></a>
+<a class="figure" href="{{url}}"><img src="{{item.properties.photo[0]}}" class="u-photo photo" /></a>
 {% elif item.properties.featured %}
 <a class="figure" href="{{url}}"><img src="{{item.properties.featured[0]}}" class="u-featured" /></a>
 {% endif %}
-<a class="u-url p-name"" href="{{url}}">{{" ".join(item.properties.name)}}</a></h1>
+<a class="u-url p-name fn" href="{{url}}">{{" ".join(item.properties.name)}}</a></h1>
 {% if item.properties.author %}
     {% if item.properties.author[0].properties %}
-    <h3 class="p-author h-card">{% if item.properties.author[0].properties.photo %}<img src="{{item.properties.author[0].properties.photo[0]}}" class="u-photo" />{% endif %}{% if item.properties.author[0].properties.url %}<a class="u-url p-name"" href="{{item.properties.author[0].properties.url[0]}}">{{item.properties.author[0].properties.name[0]}}</a>{% else %}{{item.properties.author[0].properties.name[0]}}{% endif %}</h3>
+    <h3 class="p-author author h-card">{% if item.properties.author[0].properties.photo %}<img src="{{item.properties.author[0].properties.photo[0]}}" class="u-photo" />{% endif %}{% if item.properties.author[0].properties.url %}<a class="u-url p-name"" href="{{item.properties.author[0].properties.url[0]}}">{{item.properties.author[0].properties.name[0]}}</a>{% else %}{{item.properties.author[0].properties.name[0]}}{% endif %}</h3>
     {% else %}
-    <h3 class="p-author">{{item.properties.author[0]}}</h3>
+    <h3 class="p-author author">{{item.properties.author[0]}}</h3>
     {% endif %}
 {% endif %}
 {% if item.properties.summary %}
-<h2 class="p-summary">{{" ".join(item.properties.summary)}}</h2>
+<h2 class="p-summary summary">{{" ".join(item.properties.summary)}}</h2>
 {% endif %}
 {% if item.properties.ingredient %}
 <h3>Ingredients</h3>
 <ul>
-{% for food in item.properties.ingredient %}<li class="p-ingredient">{{food}}{% endfor %}
+{% for food in item.properties.ingredient %}<li class="ingredient p-ingredient">{{food}}{% endfor %}
 </ul>
 {% endif %}
 {% if item.properties.instructions %}
 <h3>Method</h3>
 {% if item.properties.instructions|length ==1 %}
 {% autoescape false %}
-<p class="p-instructions">{{item.properties.instructions[0]["html"] or item.properties.instructions[0]}}</p>
+<p class="instructions p-instructions">{{item.properties.instructions[0]["html"] or item.properties.instructions[0]}}</p>
 {% endautoescape %}
 {% else %}
 <ol>
 {% autoescape false %}
-{% for stage in item.properties.instructions %}<li class="p-instructions">{{stage["html"] or stage}}{% endfor %}
+{% for stage in item.properties.instructions %}<li class="instructions p-instructions">{{stage["html"] or stage}}{% endfor %}
 {% endautoescape %}
 </ol>
 {% endif %}
