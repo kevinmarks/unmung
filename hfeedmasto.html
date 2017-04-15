@@ -2,51 +2,48 @@
 <head><title>{{feed.title}}</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="styles/hfeed.css" media="all" rel="stylesheet" type="text/css" />
+<link href="styles/mastoview.css" media="all" rel="stylesheet" type="text/css" />
 <script src="static/fragmention.js"></script>
 </head>
 <body class="h-feed">
+<div class="top">    <form action="/mastoview" method="get">
+      <input name="url" type="text" value="{{domain}}"></input>
+      <select name="view">
+      <option value="local" {% if view=="local" %}selected {% endif %}>Local</option>
+      <option value="federated" {% if view=="federated" %}selected {% endif %}>Federated</option>
+      </select>
+      <button type="submit" value="preview">Preview</button>
+    </form>
 <h1 class="p-name"><a class="u-url" href="{{feed.url}}">{{feed.name}}</a></h1>
-<h2 class="p-summary">{{feed.subtitle}}</h2>
+</div>
+<div class="entries">
 {% for entry in entries %}
-<div  class="h-entry">
-<p class="p-author h-card">
+<div  class="h-entry entry">
+<div class="p-author h-card header">
 <img src="{{entry.account.avatar}}" class="u-photo" />
-<a href="{{entry.account.url}}">{{entry.account.display_name or entry.account.username}}</a>
-</p>
+<a class="p-name" href="{{entry.account.url}}">{{entry.account.display_name or entry.account.username}}</a> @<span class="p-nickname">{{entry.account.acct}}</span> 
+</div>
 {% if entry.spoiler_text!="" %}
 <details>
 <summary class="p-summary">{% autoescape false %}{{entry.spoiler_text}}{% endautoescape %}</summary>
 {% endif %}
 
-<div class="e-content">
+<div class="e-content content">
 {% if entry.content %}
 	{% autoescape false %}
 	{{entry.content}}
 	{% endautoescape %}
 {% endif %}
-
-{% for link in entry.links %}
-	{% if link.type == 'audio/mpeg' or link.type == 'audio/mp3' or link.href.endswith(".mp3") %}
-		<p><audio class="u-audio" src="{{link.href}}" controls preload=none ><a href="{{link.href}}">audio</a></audio>
-	{% endif %}
-	{% if link.type == 'video/x-m4v' or link.type == 'video/x-mp4' or link.type == 'video/mp4' %}
-		<p><video class="u-video" src="{{link.href}}" controls preload=none ><a href="{{link.href}}">video</a></video>
-	{% endif %}
-{% endfor %}
 </div>
+{% for media in entry.media_attachments %}
+<figure ><img class="u-photo" src="{{media.preview_url}}" /></figure>
+{% endfor %}
 {% if entry.spoiler_text!="" %}
 </details>
 {% endif %}
-<a class="u-url" href="{{entry.url}}"><time class="dt-published" datetime="{{entry.created_at}}">{{entry.humancreated}}</time></a> 
+<div class="footer"><a class="u-url" href="{{entry.url}}"><time class="dt-published" datetime="{{entry.created_at}}">{{entry.humancreated}}</time></a></div> 
 </div>
 {% endfor %}
-{% if raw == 'on' %}
-<code>{{feeds}}
-<p>{{feed}}
-<p>
-{{entries}}
-</code>
-{% endif %}
+</div>
 </body>
 </html>

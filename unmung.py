@@ -628,23 +628,31 @@ class Oembed(webapp2.RequestHandler):
 class MastoView(webapp2.RequestHandler):
     def get(self):
         url = fixurl(self.request.get('url'))
-        values={"url":url}
+        view = self.request.get('view','local')
         urlbits= list(urlparse.urlsplit(url))
         urlbits[2] = '/api/v1/timelines/public'
-        urlbits[3] = urllib.urlencode({"local": "true"})
+        if view=='local':
+            urlbits[3] = urllib.urlencode({"local": "true"})
         url=urlparse.urlunsplit(urlbits)
-        
-        result = urlfetch.fetch(url)
-        values = {"url": url, "feed":"no feed found","raw":self.request.get('raw')}
-        if result.status_code == 200:
-            values["entries"] = json.loads(result.content)
-            for entry in values["entries"]:
-            	entry["humancreated"] = humanize.naturaltime(dateutil.parser.parse(entry["created_at"],ignoretz=True))
-            values["feed"] = {"name": urlbits[1],"url":url}
-            template = JINJA_ENVIRONMENT.get_template('hfeedmasto.html')
-            self.response.write(template.render(values))
-        else:
-            self.response.write("%i: %s" % (result.status_code,result.content))
+        values = {"url": url,"entries":[], "view":view,"domain":urlbits[1]}
+        values["feed"] = {"name": urlbits[1],"url":url}
+        gotfeed = False
+        logging.info("MastoView: - fetching '%s'"  % (url))
+        try:
+            result = urlfetch.fetch(url)
+            gotfeed = result.status_code == 200
+        except:
+           values["feed"] = {"name": "no feed found"}
+        if gotfeed:
+            logging.info("MastoView: - json '%s'"  % (result.content))
+            try:
+                values["entries"] = json.loads(result.content)
+            except:
+                values["feed"] = {"name": "feed not decoded"}
+        for entry in values["entries"]:
+            entry["humancreated"] = humanize.naturaltime(dateutil.parser.parse(entry["created_at"],ignoretz=True))
+        template = JINJA_ENVIRONMENT.get_template('hfeedmasto.html')
+        self.response.write(template.render(values))
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),

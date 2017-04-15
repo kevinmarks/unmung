@@ -1,0 +1,36 @@
+[fragmention] { background-color: gold; outline: 0.375em solid gold; }
+h1,h2,h3,dt { font-family: "Gill Sans", Roboto,Verdana, sans-serif; font-weight: bold;}
+h1 {margin:0em;}
+.top {display:flex; justify-content: space-around;flex-wrap: wrap; }
+.h-card .u-photo {height:2em;}
+figure {margin-left:2.5%; margin-right:2.5%;}
+.figure img {max-width:95%;}
+img,audio,video {max-width:95%;}
+a { text-decoration:none;}
+input,select,button[type=submit]  {font-size: 2em;}
+
+.u-photo {maxwidth:100%;}
+
+body {margin:0; font-family: "Gill Sans", Roboto,Verdana, sans-serif; background: cornsilk;}
+.entries {  display:flex; flex-wrap: wrap;
+             justify-content: space-around; 
+            font-size:1em;
+            }
+.entry {background: white;}
+.entry .header {font-weight:300;}
+.entry .header a { font-weight:600;}
+
+.entry .header img {height: 3em; float: left;  margin: .25em;}
+.entry {width:20em; margin-bottom: 1em;}
+.entry .content {margin-left:3.5em;}
+.entry .content p:first-child {margin-top:0em;}
+.entry .footer {margin-left:3.5em;}
+display:flex; flex-direction: column;
+            justify-content: space-around; }
+summary {background: pink;
+li {list-style:none;}
+.card {width:240px; border:10px; max-height:360px; overflow:hidden; text-overflow: ellipsis;}
+h3 { 
+    font-weight: 400; 
+    font-size:1.5em;
+   }
