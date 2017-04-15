@@ -13,6 +13,7 @@ import email.utils
 import xoxo
 import mf2tojf2
 import dateutil.parser
+import humanize
 
 import jinja2
 import webapp2
@@ -624,6 +625,27 @@ class Oembed(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'application/json'
         self.response.write(json.dumps(output))
 
+class MastoView(webapp2.RequestHandler):
+    def get(self):
+        url = fixurl(self.request.get('url'))
+        values={"url":url}
+        urlbits= list(urlparse.urlsplit(url))
+        urlbits[2] = '/api/v1/timelines/public'
+        urlbits[3] = urllib.urlencode({"local": "true"})
+        url=urlparse.urlunsplit(urlbits)
+        
+        result = urlfetch.fetch(url)
+        values = {"url": url, "feed":"no feed found","raw":self.request.get('raw')}
+        if result.status_code == 200:
+            values["entries"] = json.loads(result.content)
+            for entry in values["entries"]:
+            	entry["humancreated"] = humanize.naturaltime(dateutil.parser.parse(entry["created_at"],ignoretz=True))
+            values["feed"] = {"name": urlbits[1],"url":url}
+            template = JINJA_ENVIRONMENT.get_template('hfeedmasto.html')
+            self.response.write(template.render(values))
+        else:
+            self.response.write("%i: %s" % (result.status_code,result.content))
+
 application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/feed',Feed),
@@ -644,6 +666,7 @@ application = webapp2.WSGIApplication([
     ('/oembed',Oembed),
     ('/mf2tojs2',MicroformatsToJs2),
     ('/joygraph',JoyGraph),
+    ('/mastoview',MastoView),
 
 
 ], debug=True)
