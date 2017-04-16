@@ -33,6 +33,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True)
 
 def fixurl(url):
+    url = url.strip()
     if url:
         if "://" not in url:
             url = "http://"+url
