@@ -1,0 +1,19 @@
+<head>
+<link rel="stylesheet" href="styles/awesomplete.css" />
+<script src="/static/awesomplete.min.js" async></script>
+</head>
+<body>
+<form action="/mastoview" method="get">
+<input name="url" class="awesomplete" list="mylist" value="{{domain}}"  data-minchars=1  data-maxitems=20/>
+
+<datalist id="mylist">
+{% for instance in instances %}
+<option>{{instance["name"]}}</option>
+{% endfor %}
+</datalist>      
+<select name="view">
+      <option value="local" {% if view=="local" %}selected {% endif %}>Local</option>
+      <option value="federated" {% if view=="federated" %}selected {% endif %}>Federated</option>
+</select>
+<button type="submit" value="preview">Preview</button>
+</form>
