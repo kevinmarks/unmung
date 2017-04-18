@@ -44,9 +44,15 @@
 	{% endautoescape %}
 {% endif %}
 </div>
+{% if entry.nsfw_hide_media %}
+<details><summary>Show NSFW images</summary>
+{% endif %}
 {% for media in entry.media_attachments %}
 <figure ><img class="u-photo" src="{{media.preview_url}}" /></figure>
 {% endfor %}
+{% if entry.nsfw_hide_media %}
+</details>
+{% endif %}
 {% if entry.spoiler_text!="" %}
 </details>
 {% endif %}

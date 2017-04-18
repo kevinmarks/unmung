@@ -708,6 +708,9 @@ class MastoView(webapp2.RequestHandler):
                 values["error"]="type in a domain above"
         for entry in values["entries"]:
             entry["humancreated"] = humanize.naturaltime(dateutil.parser.parse(entry["created_at"],ignoretz=True))
+            for tag in entry.get("tags",[]):
+                if tag.get("name","") == "nsfw":
+                    entry["nsfw_hide_media"] = True
         template = JINJA_ENVIRONMENT.get_template('hfeedmasto.html')
         self.response.write(template.render(values))
 
