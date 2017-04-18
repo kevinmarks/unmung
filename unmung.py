@@ -663,7 +663,11 @@ def mastoParseWithCaching(url,fetch=False):
         taskqueue.add(url=taskurl)
     if mastojson is None and params:
         logging.info("mastoParseWithCaching: - parsing '%s'"  % (url))
-        mastojson = json.loads(params.get('data',''))
+        datablob = params.get('data')
+        try:
+           mastojson = json.loads(datablob)
+        except:
+            mastojson=[]
         memcache.set(url,mastojson,namespace='mastojson')
         etag = params.get('etag')
         memcache.set(url,etag,namespace='ETag')
@@ -698,7 +702,10 @@ class MastoView(webapp2.RequestHandler):
         values["entries"] = mastoParseWithCaching(url)
         if not values["entries"]:
             values["entries"]=[]
-            values["error"]="no feed found - is %s running 1.1.1 or higher?" %( values["domain"] )
+            if values["domain"]:
+                values["error"]="no feed found - is %s running 1.1.1 or higher?" %( values["domain"])
+            else:
+                values["error"]="type in a domain above"
         for entry in values["entries"]:
             entry["humancreated"] = humanize.naturaltime(dateutil.parser.parse(entry["created_at"],ignoretz=True))
         template = JINJA_ENVIRONMENT.get_template('hfeedmasto.html')
