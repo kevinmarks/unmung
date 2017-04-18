@@ -44,8 +44,8 @@
 	{% endautoescape %}
 {% endif %}
 </div>
-{% if entry.nsfw_hide_media %}
-<details><summary>Show NSFW images</summary>
+{% if entry.nsfw_hide_media and entry.media_attachments %}
+<details><summary>Show NSFW media</summary>
 {% endif %}
 {% for media in entry.media_attachments %}
 <figure ><img class="u-photo" src="{{media.preview_url}}" /></figure>
