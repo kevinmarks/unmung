@@ -714,6 +714,11 @@ class MastoView(webapp2.RequestHandler):
             values["entries"]=[]
         for entry in values["entries"]:
             entry["humancreated"] = humanize.naturaltime(dateutil.parser.parse(entry["created_at"],ignoretz=True))
+            acct = entry["account"].get("acct","")
+            if '@' in acct:
+                name, instance = acct.split('@')[:2]
+                acct = '%s@<a href="/mastoview?url=%s">%s</a>' %(name,instance,instance)
+            entry["account"]["acct"] = acct
             for tag in entry.get("tags",[]):
                 if tag.get("name","") == "nsfw":
                     entry["nsfw_hide_media"] = True

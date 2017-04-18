@@ -30,7 +30,7 @@
 <div  class="h-entry entry">
 <div class="p-author h-card header">
 <img src="{{entry.account.avatar}}" class="u-photo" />
-<a class="p-name" href="{{entry.account.url}}">{{entry.account.display_name or entry.account.username}}</a> @<span class="p-nickname">{{entry.account.acct}}</span> 
+<a class="p-name" href="{{entry.account.url}}">{{entry.account.display_name or entry.account.username}}</a> @<span class="p-nickname">{% autoescape false %}{{entry.account.acct}}{% endautoescape %}</span> 
 </div>
 {% if entry.spoiler_text!="" %}
 <details>
