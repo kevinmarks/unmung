@@ -700,12 +700,12 @@ class MastoView(webapp2.RequestHandler):
         gotfeed = False
         logging.info("MastoView: - fetching '%s'"  % (url))
         values["entries"] = mastoParseWithCaching(url)
-        if not values["entries"]:
-            values["entries"]=[]
+        if not values["entries"] or type(values["entries"]) is dict:
             if values["domain"]:
                 values["error"]="no feed found - is %s running 1.1.1 or higher?" %( values["domain"])
             else:
                 values["error"]="type in a domain above"
+            values["entries"]=[]
         for entry in values["entries"]:
             entry["humancreated"] = humanize.naturaltime(dateutil.parser.parse(entry["created_at"],ignoretz=True))
             for tag in entry.get("tags",[]):
