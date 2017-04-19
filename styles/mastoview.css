@@ -7,7 +7,7 @@ figure {margin-left:2.5%; margin-right:2.5%;}
 .figure img {max-width:95%;}
 img,audio,video {max-width:95%;}
 a { text-decoration:none;}
-input,select,button[type=submit]  {font-size: 1.5em;}
+input,select,button  {font-size: 1.5em;}
 
 .u-photo {maxwidth:100%;}
 
