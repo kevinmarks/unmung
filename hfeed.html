@@ -7,7 +7,9 @@
 </head>
 <body class="h-feed">
 <h1 class="p-name"><a class="u-url" href="{{feed.link}}">{{feed.title}}</a></h1>
-<h2 class="p-summary">{{feed.subtitle}}</h2>
+{% if feed.subtitle_detail.type=="text/plain" %}<h2 class="p-summary">{{feed.subtitle}}</h2>
+{% else %}<h2 class="e-summary">{% autoescape false %}{{feed.subtitle}}{% endautoescape %}</h2>
+{% endif %}
 {% if feed.author_detail %}
 <p class="p-author h-card">
 {% if feed.image %}
