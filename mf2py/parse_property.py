@@ -1,6 +1,7 @@
 """functions to parse the properties of elements"""
+from __future__ import unicode_literals, print_function
 
-from .dom_helpers import get_attr
+from .dom_helpers import get_attr, get_children, get_textContent
 import sys
 import re
 
@@ -15,15 +16,14 @@ else:
 
 
 DATE_RE = r'\d{4}-\d{2}-\d{2}'
-RAWTIME_RE = r'(?P<hour>\d{1,2})(:(?P<minute>\d{2})(:(?P<second>\d{2})(\.\d+)?)?)?'
+SEC_RE = r'(:(?P<second>\d{2})(\.\d+)?)'
+RAWTIME_RE = r'(?P<hour>\d{1,2})(:(?P<minute>\d{2})%s?)?' % (SEC_RE)
 AMPM_RE = 'am|pm|a\.m\.|p\.m\.'
 TIMEZONE_RE = r'Z|[+-]\d{2}:?\d{2}?'
-TIME_RE = r'(?P<rawtime>%s)( ?(?P<ampm>%s))?( ?(?P<tz>%s))?' % (RAWTIME_RE, AMPM_RE, TIMEZONE_RE)
-DATETIME_RE = r'(?P<date>%s)[T ](?P<time>%s)' % (DATE_RE, TIME_RE)
-
-
-def is_vcp_class(c):
-    return c == 'value' or c == 'value-title'
+TIME_RE = (r'(?P<rawtime>%s)( ?(?P<ampm>%s))?( ?(?P<tz>%s))?' %
+           (RAWTIME_RE, AMPM_RE, TIMEZONE_RE))
+DATETIME_RE = (r'(?P<date>%s)(?P<separator>[T ])(?P<time>%s)'
+               % (DATE_RE, TIME_RE))
 
 
 def get_vcp_value(el):
@@ -32,58 +32,56 @@ def get_vcp_value(el):
     return el.get_text()
 
 
-def text(el):
+def get_vcp_children(el):
+    return [c for c in get_children(el) if c.has_attr('class')
+            and ('value' in c['class'] or 'value-title' in c['class'])]
+
+
+def text(el, base_url=''):
     """Process p-* properties"""
+
     # handle value-class-pattern
-    value_els = el.find_all(class_=is_vcp_class, recursive=False)
+    value_els = get_vcp_children(el)
     if value_els:
         return ''.join(get_vcp_value(el) for el in value_els)
 
-    prop_value = get_attr(el, "title", check_name="abbr")
-    if prop_value is not None:
-        return prop_value
+    prop_value = get_attr(el, "title", check_name=("abbr", "link"))
+    if prop_value is None:
+        prop_value = get_attr(el, "value", check_name=("data", "input"))
+    if prop_value is None:
+        prop_value = get_attr(el, "alt", check_name=("img", "area"))
+    if prop_value is None:
+        prop_value = get_textContent(el, replace_img=True, base_url=base_url)
 
-    prop_value = get_attr(el, "value", check_name=("data","input"))
-    if prop_value is not None:
-        return prop_value
-
-    prop_value = get_attr(el, "alt", check_name=("img","area"))
-    if prop_value is not None:
-        return prop_value
-
-    # see if get_text() replaces img with alts
-    # strip here?
-    return el.get_text()
+    return prop_value
 
 
 def url(el, base_url=''):
     """Process u-* properties"""
-    prop_value = get_attr(el, "href", check_name=("a", "area"))
-    if prop_value is not None:
-        return urljoin(base_url, prop_value)  # make urls absolute
 
-    prop_value = get_attr(el, "src", check_name=("img", "audio", "video", "source"))
+    prop_value = get_attr(el, "href", check_name=("a", "area", "link"))
+    if prop_value is None:
+        prop_value = get_attr(el, "src", check_name=("img", "audio", "video", "source"))
+    if prop_value is None:
+        prop_value = get_attr(el, "poster", check_name="video")
+    if prop_value is None:
+        prop_value = get_attr(el, "data", check_name="object")
+
     if prop_value is not None:
         return urljoin(base_url, prop_value)
 
-    prop_value = get_attr(el, "data", check_name="object")
-    if prop_value is not None:
-        return urljoin(base_url, prop_value)
-
-    value_els = el.find_all(class_=is_vcp_class, recursive=False)
+    value_els = get_vcp_children(el)
     if value_els:
-        return urljoin(base_url, ''.join(get_vcp_value(el) for el in value_els))
+        return urljoin(base_url, ''.join(get_vcp_value(el)
+                       for el in value_els))
 
     prop_value = get_attr(el, "title", check_name="abbr")
-    if prop_value is not None:
-        return prop_value
+    if prop_value is None:
+        prop_value = get_attr(el, "value", check_name=("data", "input"))
+    if prop_value is None:
+        prop_value = get_textContent(el)
 
-    prop_value = get_attr(el, "value", check_name=("data", "input"))
-    if prop_value is not None:
-        return prop_value
-
-    # strip here?
-    return el.get_text()
+    return prop_value
 
 
 def datetime(el, default_date=None):
@@ -97,7 +95,7 @@ def datetime(el, default_date=None):
     """
     def try_normalize(dtstr, match=None):
         """Try to normalize a datetime string.
-        1. Use 'T' as the date/time separator.
+        <strike>1. Use 'T' as the date/time separator.</strike>
         2. Convert 12-hour time to 24-hour time
 
         pass match in if we have already calculated it to avoid rework
@@ -109,18 +107,20 @@ def datetime(el, default_date=None):
             minutestr = match.group('minute') or '00'
             secondstr = match.group('second') or '00'
             ampmstr = match.group('ampm')
+            separator = match.group('separator')
             if ampmstr:
                 hourstr = match.group('hour')
                 if ampmstr.startswith('p'):
                     hourstr = str(int(hourstr) + 12)
-            dtstr = '%sT%s:%s:%s' % (datestr, hourstr, minutestr, secondstr)
+            dtstr = '%s%s%s:%s:%s' % (
+                datestr, separator, hourstr, minutestr, secondstr)
             tzstr = match.group('tz')
             if tzstr:
                 dtstr += tzstr
         return dtstr
 
     # handle value-class-pattern
-    value_els = el.find_all(class_=is_vcp_class)
+    value_els = get_vcp_children(el)
     if value_els:
         date_parts = []
         for value_el in value_els:
@@ -172,10 +172,13 @@ def datetime(el, default_date=None):
 
         return try_normalize(date_time_value), date_part
 
-    prop_value = get_attr(el, "datetime", check_name=("time", "ins", "del"))\
-        or get_attr(el, "title", check_name="abbr")\
-        or get_attr(el, "value", check_name=("data", "input"))\
-        or el.get_text()  # strip here?
+    prop_value = get_attr(el, "datetime", check_name=("time", "ins", "del"))
+    if prop_value is None:
+        prop_value = get_attr(el, "title", check_name="abbr")
+    if prop_value is None:
+        prop_value = get_attr(el, "value", check_name=("data", "input"))
+    if prop_value is None:
+        prop_value = get_textContent(el) 
 
     # if this is just a time, augment with default date
     match = re.match(TIME_RE + '$', prop_value)
@@ -185,12 +188,13 @@ def datetime(el, default_date=None):
 
     # otherwise, treat it as a full date
     match = re.match(DATETIME_RE + '$', prop_value)
-    return try_normalize(prop_value, match=match), match and match.group('date')
+    return (try_normalize(prop_value, match=match),
+            match and match.group('date'),)
 
 
-def embedded(el):
+def embedded(el, base_url=''):
     """Process e-* properties"""
     return {
-        'html': el.decode_contents(),    # secret bs4 method to get innerHTML
-        'value': el.get_text()     # strip here?
+        'html': el.decode_contents().strip(),    # secret bs4 method to get innerHTML
+        'value': get_textContent(el, replace_img=True, base_url=base_url)
     }
