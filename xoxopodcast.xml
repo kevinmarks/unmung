@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+<channel><title>I'm Sorry I Haven't a Clue</title>
+<description>I'm Sorry I Haven't a Clue full archive</description><itunes:summary>I'm Sorry I Haven't a Clue full archive</itunes:summary><itunes:author>BBC Radio 4</itunes:author><itunes:owner><itunes:name>BBC</itunes:name></itunes:owner><language>en</language><itunes:category text="Comedy"/><itunes:category text="Comedy"/><itunes:category text="Comedy"/><itunes:explicit>no</itunes:explicit><media:rating scheme="urn:simple">nonadult</media:rating>
+{% for entry in entries %}
+<item><title>{{entry.name}}</title>
+<description>{{entry.content}}</description>
+<itunes:subtitle>{{entry.summary}}</itunes:subtitle>
+<itunes:summary>{{entry.content}}</itunes:summary>
+<pubDate>{{entry.date}}</pubDate>
+<enclosure url="{{entry.url}}"  type="audio/mpeg"/>
+<itunes:explicit>clean</itunes:explicit>
+<media:content url="{{entry.url}}" type="audio/mpeg" medium="audio" expression="full"/>
+<itunes:author>BBC Radio 4</itunes:author>
+</item>
+{% endfor %}
+</channel>
+</rss>

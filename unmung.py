@@ -605,6 +605,37 @@ class XOXOToJson(webapp2.RequestHandler):
         else:
             html= "Error %i %s" % (result.status_code,result.content)
             self.response.write(html)
+
+class XOXOToFeed(webapp2.RequestHandler):
+    def get(self):
+        url = fixurl(self.request.get('url'))
+        if not url:
+            url="http://www.bennewsam.co.uk/ISIHAC.html"
+        result = urlfetch.fetch(url)
+        if result.status_code == 200:
+            data= xoxo.fromXOXO(result.content)
+            self.response.headers['Content-Type'] = 'application/rss+xml'
+            entries = []
+            for chunk in data:
+              if chunk.get("download") == "download":
+                 text = chunk.get("text",".mp3").split('.')[0]
+                 textbits = text.split(" - ")
+                 date = email.utils.formatdate(time.mktime(dateutil.parser.parse(textbits[1] +' 18:30Z').timetuple()))
+                 name = " ".join(textbits[:4])
+                 url = 'http://www.bennewsam.co.uk/'+ urllib.quote(chunk.get("url",""))
+                 if text:
+                     entries.append({"name":name,
+                                     "content":text,
+                                     "summary":text,
+                                     "date":date,
+                                     "url":url,
+                                     })
+            values = {"entries":entries}
+            template = JINJA_ENVIRONMENT.get_template('xoxopodcast.xml')
+            self.response.write(template.render(values))
+        else:
+            html= "Error %i %s" % (result.status_code,result.content)
+            self.response.write(html)
             
 class Oembed(webapp2.RequestHandler):
     def get(self):
@@ -754,6 +785,7 @@ application = webapp2.WSGIApplication([
     ('/refreshmf2cache/(.*)',RefreshMF2Cache),
     ('/jsontoxoxo',JsonToXOXO),
     ('/xoxotojson',XOXOToJson),
+    ('/xoxotofeed',XOXOToFeed),
     ('/oembed',Oembed),
     ('/mf2tojs2',MicroformatsToJs2),
     ('/joygraph',JoyGraph),
