@@ -27,10 +27,17 @@ body {margin:0; font-family: "Gill Sans", Roboto,Verdana, sans-serif; background
 .entry .footer {margin-left:3.5em;}
 display:flex; flex-direction: column;
             justify-content: space-around; }
-summary {background: pink;
 li {list-style:none;}
 .card {width:240px; border:10px; max-height:360px; overflow:hidden; text-overflow: ellipsis;}
 h3 { 
     font-weight: 400; 
     font-size:1.5em;
    }
+summary .showmore {
+    background: blue;
+    color: white;
+    text-transform: uppercase;
+    border-radius: .25em;
+    padding: .25em;
+    font-size: .75em;
+}

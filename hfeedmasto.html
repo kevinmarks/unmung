@@ -35,7 +35,7 @@
 </div>
 {% if entry.spoiler_text!="" %}
 <details>
-<summary class="p-summary">{% autoescape false %}{{entry.spoiler_text}}{% endautoescape %}</summary>
+<summary class="p-summary">{% autoescape false %}{{entry.spoiler_text}}{% endautoescape %} <span class="showmore">Show More</span></summary>
 {% endif %}
 
 <div class="e-content content">
