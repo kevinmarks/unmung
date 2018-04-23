@@ -175,6 +175,21 @@ CLASSIC_PROPERTY_MAP = {
         'postal-code': ['p-postal-code'],
         'country-name': ['p-country-name'],
     },
+    'recipe-main-info': {
+        'content-title__text': ['p-name'],
+        'recipe-ingredients__list-item': ['p-ingredient'],
+        'recipe-metadata__serving': ['p-yield'],
+        'recipe-method__list-item-text': ['p-instructions'],
+        'recipe-metadata__prep-time': ['p-duration'],
+        'nutrition': ['p-nutrition'],
+        'recipe-media__image': ['u-photo'],
+        'recipe-description__text': ['p-summary'],
+        'recipe-ingredients__link':['p-category'],
+        'recipe-tips__text':['e-note'],
+        'chef': ['p-author', 'h-card'],
+        'chef__image': ['u-photo'],
+        'chef__link': ['p-name'],
+    },
 }
 
 def root(classes):
