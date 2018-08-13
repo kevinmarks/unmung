@@ -11,12 +11,7 @@
 <img src="{{feed.avatar_url}}" class="u-photo" />
 <h2 class="p-name">{{feed.name}}</h2>
 <ul>
-{% if feed.links %}
-{% for link in feed.links %}
-<li><a class="u-url" href="{{link}}">{{link}}</a>
-{% endfor %}</p>
-{% endif %}
-{% for entry in feed.posts %}
+{% for entry in feed %}
 <article class="h-entry">
 {% for bodypart in entry.body %}
 {% if bodypart.kind=="text" %}
