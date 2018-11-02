@@ -9,6 +9,7 @@ from mf2py.dom_helpers import get_attr, get_children, get_descendents
 import json
 import requests
 import sys
+import logging
 
 if sys.version < '3':
     from urlparse import urlparse, urljoin
@@ -71,7 +72,7 @@ class Parser(object):
             ('rels', self.dict_class()),
             ('rel-urls', self.dict_class()),
         ])
-
+        logging.info("mf2py Parser: - html_parser '%s'"  % (html_parser))
         if url is not None:
             self.__url__ = url
 
@@ -97,10 +98,12 @@ class Parser(object):
                 try:
                     # try the user-given html parser or default html5lib
                     self.__doc__ = BeautifulSoup(doc, features=html_parser)
+                    logging.info("BeautifulSoup using  html_parser: '%s'"  % (html_parser))
                 except FeatureNotFound:
                     # maybe raise a warning?
                     # else switch to default use
                     self.__doc__ = BeautifulSoup(doc)
+                    logging.info("BeautifulSoup using  html_parser: '%s'"  % (self.__doc__.builder))
 
 
         # check for <base> tag

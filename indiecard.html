@@ -32,6 +32,9 @@
 {% if item.properties.summary %}
 <h2 class="p-summary summary">{{" ".join(item.properties.summary)}}</h2>
 {% endif %}
+{% if item.properties.content %}
+<h2 class="e-content">{{" ".join(item.properties.content.html)}}</h2>
+{% endif %}
 {% if item.properties.ingredient %}
 <h3>Ingredients</h3>
 <ul>

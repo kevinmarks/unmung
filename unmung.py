@@ -314,7 +314,7 @@ def findCardFeedEntries(item,hcard,hfeed,hentries):
         hcard= item["properties"]["author"][0]
     if not hfeed and item["type"][0].startswith('h-feed'):
         hfeed=item
-    if item["type"][0].startswith('h-entry'):
+    if item["type"][0].startswith('h-entry') or item["type"][0].startswith('h-cite'):
         hentries.append(item)
     return hcard,hfeed,hentries
 
@@ -617,13 +617,21 @@ class XOXOToFeed(webapp2.RequestHandler):
             self.response.headers['Content-Type'] = 'application/rss+xml'
             entries = []
             for chunk in data:
-              if chunk.get("download") == "download":
+              if chunk.get("url","nope").endswith(".mp3"):
                  text = chunk.get("text",".mp3").split('.')[0]
                  textbits = text.split(" - ")
-                 date = email.utils.formatdate(time.mktime(dateutil.parser.parse(textbits[1] +' 18:30Z').timetuple()))
+                 date=None
+                 if text == textbits[0]:
+                    textbits = chunk.get("url").split(" - ")[1:]
+                 if len(textbits) >1:
+                    try:
+                        date = email.utils.formatdate(time.mktime(dateutil.parser.parse(textbits[0] +' 18:30Z').timetuple()))
+                    except:
+                        date=None
+                        print textbits
                  name = " ".join(textbits[:4])
                  url = 'http://www.bennewsam.co.uk/'+ urllib.quote(chunk.get("url",""))
-                 if text:
+                 if text and date:
                      entries.append({"name":name,
                                      "content":text,
                                      "summary":text,
@@ -726,7 +734,7 @@ class MastoView(webapp2.RequestHandler):
                  values["instances"] = instcache['instances']
         rawurl = self.request.get('url').strip()
         randomurl = self.request.get('random').strip()
-        logging.info("MastoView: - raw '%s' eandom '%s'"  % (rawurl,randomurl))
+        logging.info("MastoView: - raw '%s' random '%s'"  % (rawurl,randomurl))
         if (not rawurl) and (not randomurl):
             rawurl = memcache.get('gooddomain',namespace='gooddomain')
         if not rawurl:
