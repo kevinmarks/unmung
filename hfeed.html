@@ -15,6 +15,11 @@
 {% if feed.image %}
 <img src="{{feed.image.href}}" class="u-photo" />
 {% endif %}
+{% for link in feed.links %}
+	{% if link.type.split('/')[0] == 'image' and link.rel=='avatar' %}
+		<img alt="" class="u-photo" src="{{link.href}}" />
+	{% endif %}
+{% endfor %}
 <a href="{{feed.author_detail.href}}">{{feed.author_detail.name}}</a>
 </p>
 {% endif %}
@@ -55,6 +60,9 @@
 	{% if link.type == 'video/x-m4v' or link.type == 'video/x-mp4' or link.type == 'video/mp4' %}
 		<p><video class="u-video" src="{{link.href}}" controls preload=none ><a href="{{link.href}}">video</a></video>
 	{% endif %}
+	{% if link.type.split('/')[0] == 'image' and link.rel not in ['avatar','header'] %}
+		<p><a href="{{link.href}}"><img alt="" class="u-photo" src="{{link.href}}" /></a>
+	{% endif %}
 {% endfor %}
 </div>
 {% if entry.published %}
@@ -65,7 +73,13 @@
 {% endif %}
 {% if entry.author_detail %}
 {% if entry.author_detail.href %}
-<p>by <a class="p-author h-card" href="{{entry.author_detail.href}}">{{entry.author_detail.name}}</a>
+<p>by <a class="p-author h-card" href="{{entry.author_detail.href}}">
+{% for link in entry.links %}
+	{% if link.type.split('/')[0] == 'image' and link.rel=='avatar' %}
+		<img alt="" class="u-photo" src="{{link.href}}" />
+	{% endif %}
+{% endfor %}
+{{entry.author_detail.name}}</a>
 {% else %}
 {% autoescape false %}
 by <span class="p-author h-card">{{entry.author_detail.name}}</span>
