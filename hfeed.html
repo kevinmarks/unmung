@@ -66,10 +66,10 @@
 {% endfor %}
 </div>
 {% if entry.published %}
-<p><time class="dt-published" datetime="{{entry.iso_published}}">Published: {{entry.published}}</time> 
+<p><time class="dt-published" datetime="{{entry.iso_published}}">Published: {{entry.human_published}}</time> 
 {% endif %}
 {% if entry.updated %}
-<p><time class="dt-updated" datetime="{{entry.iso_updated}}">Updated: {{entry.updated}}</time> 
+<p {% if entry.updated==entry.published %} style="display:none" {% endif %}><time class="dt-updated" datetime="{{entry.iso_updated}}">Updated: {{entry.human_updated}}</time> 
 {% endif %}
 {% if entry.author_detail %}
 {% if entry.author_detail.href %}

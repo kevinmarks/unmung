@@ -137,8 +137,10 @@ class Feed(webapp2.RequestHandler):
         for entry in values["entries"]:
             if "published" in entry and entry["published_parsed"]:
                 entry["iso_published"] =  datetime.datetime(*entry["published_parsed"][:6]).isoformat()
+                entry["human_published"] = humanize.naturaltime(datetime.datetime(*entry["published_parsed"][:6]))
             if "updated" in entry and entry["updated_parsed"]:
                 entry["iso_updated"] = datetime.datetime(*entry["updated_parsed"][:6]).isoformat()
+                entry["human_updated"] = humanize.naturaltime(datetime.datetime(*entry["updated_parsed"][:6]))
         if len(values["entries"]) ==0:
             values["entries"]=["no entries"]
         template = JINJA_ENVIRONMENT.get_template('hfeed.html')
