@@ -1,0 +1,20 @@
+{
+    "type": [
+        "h-recipe"
+    ], 
+    "properties": {
+        "content-title__text": ["p-name"],
+        "recipe-ingredients__list-item": ["p-ingredient"],
+        "recipe-metadata__serving": ["p-yield"],
+        "recipe-method-wrapper": ["e-instructions"],
+        "recipe-metadata__prep-time": ["p-duration"],
+        "nutrition": ["p-nutrition"],
+        "recipe-media__image": ["u-photo"],
+        "recipe-description__text": ["p-summary"],
+        "recipe-ingredients__link":["p-category"],
+        "chef": ["p-author", "h-card"],
+        "chef__image": ["u-photo"],
+        "chef__link": ["p-name"]
+    }
+
+ }
