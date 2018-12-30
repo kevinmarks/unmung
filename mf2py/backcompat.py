@@ -1,13 +1,38 @@
 # coding: utf-8
 """Looks for classic microformats class names and augments them with
 microformats2 names. Ported and adapted from php-mf2.
+
+NOTE: functions in this module modify DOM elements. For this copies of the source tree are created, but BS4's copy
+function doesn't create copy of all sub-elements: most notably, the values of the `attrs` dictionary are not copied,
+and thus reference the same list objects as in the original tree. Thus, special care has to be taken when modifying the
+tree so changes do not accidentally propagate.
+
+a) adding new/removing children is safe
+
+b) attributes (e.g. `class`) should only by changed by assigning a *copy* of the original value, not by modifying it in
+place.
+
+DO NOT:
+child_classes = child.get('class', [])
+child_classes.append('p-kittens')
+child['class'] = child_classes
+
+DO:
+child_classes = child.get('class', [])[:] ###<------- COPY CREATED HERE
+child_classes.append('p-kittens')
+child['class'] = child_classes
+
 """
 
 from __future__ import unicode_literals, print_function
-from .dom_helpers import get_descendents
+from .dom_helpers import get_children
+from .mf_helpers import unordered_list
 from . import mf2_classes
 import bs4
 import copy
+import os
+import codecs
+import json
 
 import sys
 if sys.version < '3':
@@ -15,248 +40,102 @@ if sys.version < '3':
 else:
     from urllib.parse import unquote
 
+# Classic map
+_CLASSIC_MAP = {}
 
-# Classic Root Classname map
-CLASSIC_ROOT_MAP = {
-    'vcard': 'h-card',
-    'hfeed': 'h-feed',
-    'hentry': 'h-entry',
-    'hrecipe': 'h-recipe',
-    'hresume': 'h-resume',
-    'vevent': 'h-event',
-    'hreview': 'h-review',
-    'hproduct': 'h-product',
-    'hreview-aggregate': 'h-review-aggregate',
-    'geo': 'h-geo',
-    'adr': 'h-adr',
-    'recipe-main-info':'h-recipe',
-}
+# populate backcompat rules from JSON files
 
-CLASSIC_PROPERTY_MAP = {
-    'vcard': {
-        'fn': ['p-name'],
-        'url': ['u-url'],
-        'honorific-prefix': ['p-honorific-prefix'],
-        'given-name': ['p-given-name'],
-        'additional-name': ['p-additional-name'],
-        'family-name': ['p-family-name'],
-        'honorific-suffix': ['p-honorific-suffix'],
-        'nickname': ['p-nickname'],
-        'email': ['u-email'],
-        'logo': ['u-logo'],
-        'photo': ['u-photo'],
-        'uid': ['u-uid'],
-        'category': ['p-category'],
-        'adr': ['p-adr', 'h-adr'],
-        'extended-address': ['p-extended-address'],
-        'street-address': ['p-street-address'],
-        'locality': ['p-locality'],
-        'region': ['p-region'],
-        'postal-code': ['p-postal-code'],
-        'country-name': ['p-country-name'],
-        'label': ['p-label'],
-        'geo': ['p-geo', 'h-geo'],
-        'latitude': ['p-latitude'],
-        'longitude': ['p-longitude'],
-        'tel': ['p-tel'],
-        'note': ['p-note'],
-        'bday': ['dt-bday'],
-        'key': ['u-key'],
-        'org': ['p-org'],
-        'organization-name': ['p-organization-name'],
-        'organization-unit': ['p-organization-unit'],
-    },
-    'hfeed': {
-        'title': ['p-name'], #for blogger, if they move hfeed to the right place
-        'description': ['p-summary'],  #for blogger, if they move hfeed to the right place
-        'site-title': ['p-name'], #for wordpress defaults
-        'site-description': ['p-summary'],  #for wordpress defaults
-        'category': ['p-category'],
-    },
-    'hentry': {
-        'entry-title': ['p-name'],
-        'entry-summary': ['p-summary'],
-        'entry-content': ['e-content'],
-        'entry-date': ['dt-published'], #seen in manton's blog
-        'published': ['dt-published'],
-        'updated': ['dt-updated'],
-        'author': ['p-author', 'h-card'],
-        'category': ['p-category'],
-        'geo': ['p-geo', 'h-geo'],
-        'latitude': ['p-latitude'],
-        'longitude': ['p-longitude'],
-    },
-    'hrecipe': {
-        'fn': ['p-name'],
-        'ingredient': ['p-ingredient'],
-        'yield': ['p-yield'],
-        'instructions': ['e-instructions'],
-        'duration': ['dt-duration'],
-        'nutrition': ['p-nutrition'],
-        'photo': ['u-photo'],
-        'summary': ['p-summary'],
-        'author': ['p-author', 'h-card'],
-    },
-    'hresume': {
-        'summary': ['p-summary'],
-        'contact': ['h-card', 'p-contact'],
-        'education': ['h-event', 'p-education'],
-        'experience': ['h-event', 'p-experience'],
-        'skill': ['p-skill'],
-        'affiliation': ['p-affiliation', 'h-card'],
-    },
-    'vevent': {
-        'dtstart': ['dt-start'],
-        'dtend': ['dt-end'],
-        'duration': ['dt-duration'],
-        'description': ['p-description'],
-        'summary': ['p-name'],
-        'url': ['u-url'],
-        'category': ['p-category'],
-        'location': ['p-location'],
-        'geo': ['p-location h-geo'],
-        'attendee': ['p-attendee'],
-        'contact': ['p-contact'],
-        'organizer': ['p-organizer'],
-    },
-    'hreview': {
-        'summary': ['p-name'],
-        # doesn't work properly, see spec
-        'fn': ['p-item', 'h-item', 'p-name'],
-        # of the item being reviewed (p-item h-item u-photo)
-        'photo': ['u-photo'],
-        # of the item being reviewed (p-item h-item u-url)
-        'url': ['u-url'],
-        'reviewer': ['p-author', 'h-card'],
-        'dtreviewed': ['dt-reviewed'],
-        'rating': ['p-rating'],
-        'best': ['p-best'],
-        'worst': ['p-worst'],
-        'description': ['p-description'],
-    },
-    'hproduct': {
-        'fn': ['p-name'],
-        'photo': ['u-photo'],
-        'brand': ['p-brand'],
-        'category': ['p-category'],
-        'description': ['p-description'],
-        'identifier': ['u-identifier'],
-        'url': ['u-url'],
-        'review': ['p-review', 'h-review', 'e-description'],
-        'price': ['p-price'],
-    },
-    'hreview-aggregate': {
-        'summary': ['p-name'],
-        # doesn't work properly, see spec
-        'fn': ['p-item', 'h-item', 'p-name'],
-        # of the item being reviewed (p-item h-item u-photo)
-        'photo': ['u-photo'],
-        # of the item being reviewed (p-item h-item u-url)
-        'url': ['u-url'],
-        'reviewer': ['p-reviewer', 'p-author', 'h-card'],
-        'dtreviewed': ['dt-reviewed'],
-        'rating': ['p-rating'],
-        'best': ['p-best'],
-        'worst': ['p-worst'],
-        'description': ['p-description'],
-        'count': ['p-count'],
-        'votes': ['p-votes']
-    },
-    'geo': {
-        'latitude': ['p-latitude'],
-        'longitude': ['p-longitude'],
-    },
-    'adr': {
-        'post-office-box': ['p-post-office-box'],
-        'extended-address': ['p-extended-address'],
-        'street-address': ['p-street-address'],
-        'locality': ['p-locality'],
-        'region': ['p-region'],
-        'postal-code': ['p-postal-code'],
-        'country-name': ['p-country-name'],
-    },
-    'recipe-main-info': {
-        'content-title__text': ['p-name'],
-        'recipe-ingredients__list-item': ['p-ingredient'],
-        'recipe-metadata__serving': ['p-yield'],
-        'recipe-method__list-item-text': ['p-instructions'],
-        'recipe-metadata__prep-time': ['p-duration'],
-        'nutrition': ['p-nutrition'],
-        'recipe-media__image': ['u-photo'],
-        'recipe-description__text': ['p-summary'],
-        'recipe-ingredients__link':['p-category'],
-        'recipe-tips__text':['e-note'],
-        'chef': ['p-author', 'h-card'],
-        'chef__image': ['u-photo'],
-        'chef__link': ['p-name'],
-    },
-}
+_RULES_LOC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backcompat-rules')
 
-def root(classes):
-    """get all backcompat root classnames
-    """
-    return [c for c in classes if c in CLASSIC_ROOT_MAP]
+for filename in os.listdir(_RULES_LOC):
+    file_path = os.path.join(_RULES_LOC, filename)
+    root = os.path.splitext(filename)[0]
+    with codecs.open(file_path, 'r', 'utf-8') as f:
+        rules = json.load(f)
+
+    _CLASSIC_MAP[root] = rules 
 
 
-def make_classes_rule(old_class, new_classes):
+def _make_classes_rule(old_classes, new_classes):
     """Builds a rule for augmenting an mf1 class with its mf2
     equivalent(s).
     """
     def f(child, **kwargs):
-        child_classes = child.get('class', [])
-        if old_class in child_classes:
-            child_classes += [c for c in new_classes
-                              if c not in child_classes]
+        child_original = child.original or copy.copy(child)
+        child_classes = child.get('class', [])[:]
+        if all(cl in child_classes for cl in old_classes):
+            child_classes.extend([cl for cl in new_classes if cl not in child_classes])
             child['class'] = child_classes
+
+            # if any new class is e-* attach original to parse originally authored HTML
+            if mf2_classes.has_embedded_class(child_classes) and child.original is None:
+                child.original = child_original
     return f
 
 
-# The RULES map has a list of rules for each root class type.
-# We'll build the vast majority of it from the CLASSIC_PROPERTY_MAP
-RULES = dict(
-    (old_root, [make_classes_rule(old_class, new_classes)
-                for old_class, new_classes in properties.items()])
-    for old_root, properties in CLASSIC_PROPERTY_MAP.items())
-
-
-def rel_bookmark_to_url_rule(child, **kwargs):
-    """rel=bookmark gets augmented with class="u-url
-    """
-    child_classes = child.get('class', [])
-    if ('bookmark' in child.get('rel', [])
-            and 'u-url' not in child_classes):
-        child_classes.append('u-url')
-        child['class'] = child_classes
-
-
-def rel_tag_to_category_rule(child, **kwargs):
+def _rel_tag_to_category_rule(child, html_parser, **kwargs):
     """rel=tag converts to p-category using a special transformation (the
-    category becomes the tag href's last path segment). This rule adds a new
-    data tag so that
-    <a rel="tag" href="http://example.com/tags/cat"></a> gets augmented with
+    category becomes the tag href's last path segment). This rule adds a new data tag so that
+    <a rel="tag" href="http://example.com/tags/cat"></a> gets replaced with
     <data class="p-category" value="cat"></data>
     """
+
+    href = child.get('href', '')
     rels = child.get('rel', [])
-    classes = child.get('class', [])
-    if ('tag' in rels and child.get('href')
-            and 'p-category' not in classes
-            and 'u-category' not in classes):
-        segments = [seg for seg in child.get('href').split('/') if seg]
+    if 'tag' in rels and href:
+        segments = [seg for seg in href.split('/') if seg]
         if segments:
-            data = bs4.BeautifulSoup('<data></data>').data
-            # use mf1 class here so it doesn't get removed later
-            data['class'] = ['category']
+            if html_parser:
+                soup = bs4.BeautifulSoup('', features=html_parser)
+            else:
+                soup = bs4.BeautifulSoup('')
+
+            data = soup.new_tag('data')
+            # this does not use what's given in the JSON
+            # but that is not a problem currently
+            # use mf1 class so it doesn't get removed later
+            data['class'] = ['p-category']
             data['value'] = unquote(segments[-1])
-            child.parent.append(data)
+            child.insert_before(data)
+            # remove tag from rels to avoid repeat
+            # new list created, original not modifed -> safe on incomplete copy
+            child['rel'] = [r for r in rels if r != 'tag']
 
 
-# Augment with special rules
-RULES['hentry'] += [
-    rel_bookmark_to_url_rule,
-    rel_tag_to_category_rule,
-]
+def _make_rels_rule(old_rels, new_classes, html_parser):
+    """Builds a rule for augmenting an mf1 rel with its mf2 class equivalent(s).
+    """
 
-def apply_rules(el):
+    # need to special case rel=tag as it operates differently
+
+    def f(child, **kwargs):
+        child_rels = child.get('rel', [])
+        child_classes = child.get('class', [])[:]
+        if all(r in child_rels for r in old_rels):
+            if 'tag' in old_rels:
+                _rel_tag_to_category_rule(child, html_parser, **kwargs)
+            else:
+                child_classes.extend([cl for cl in new_classes if cl not in child_classes])
+                child['class'] = child_classes
+    return f
+
+
+def _get_rules(old_root, html_parser):
+    """ for given mf1 root get the rules as a list of functions to act on children """
+
+    class_rules = [_make_classes_rule(old_classes.split(), new_classes)
+                for old_classes, new_classes in _CLASSIC_MAP[old_root].get('properties', {}).items()]
+    rel_rules = [_make_rels_rule(old_rels.split(), new_classes, html_parser)
+                for old_rels, new_classes in _CLASSIC_MAP[old_root].get('rels', {}).items()]
+
+    return class_rules + rel_rules
+
+def root(classes):
+    """get all backcompat root classnames
+    """
+    return unordered_list([c for c in classes if c in _CLASSIC_MAP])
+
+def apply_rules(el, html_parser):
     """add modern classnames for older mf1 classnames
 
     returns a copy of el and does not modify the original
@@ -266,11 +145,10 @@ def apply_rules(el):
 
     def apply_prop_rules_to_children(parent, rules):
 
-        for child in (c for c in parent.children if isinstance(c, bs4.Tag)):
-            classes = child.get('class',[])
+        for child in get_children(parent):
+            classes = child.get('class',[])[:]
             # find existing mf2 properties if any and delete them
-            mf2_props = mf2_classes.property_classes(classes)
-            child['class'] = [cl for cl in classes if cl not in mf2_props]
+            child['class'] = [cl for cl in classes if not mf2_classes.is_property_class(cl)]
 
             # apply rules to change mf1 to mf2
             for rule in rules:
@@ -280,20 +158,19 @@ def apply_rules(el):
             if not (mf2_classes.root(classes) or root(classes)):
                 apply_prop_rules_to_children(child, rules)
 
-
     # add mf2 root equivalent
-    classes = el_copy.get('class', [])
+    classes = el_copy.get('class', [])[:]
     old_roots = root(classes)
     for old_root in old_roots:
-        new_root = CLASSIC_ROOT_MAP[old_root]
-        if new_root not in classes:
-            el_copy['class'].append(new_root)
+        new_roots = _CLASSIC_MAP[old_root]['type']
+        classes.extend(new_roots)
+    el_copy['class'] = classes
 
 
     # add mf2 prop equivalent to descendents and remove existing mf2 props
     rules = []
     for old_root in old_roots:
-        rules.extend(RULES.get(old_root,[]))
+        rules.extend(_get_rules(old_root, html_parser))
 
     apply_prop_rules_to_children(el_copy, rules)
 
